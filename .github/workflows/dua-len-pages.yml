@@ -1,0 +1,68 @@
+# Dung web va dua len GitHub Pages moi khi day code len nhanh main.
+# Lan dau: Settings -> Pages -> Build and deployment -> Source: "GitHub Actions".
+# Phien ban action theo tai lieu GitHub Pages / Hugo (9/2026, chay tren Node 24).
+name: Dua web len GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  dung:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Cai thu vien
+        run: npm ci
+
+      - name: Tai mo hinh MediaPipe Holistic de web tu phuc vu
+        run: node scripts/tai-mo-hinh.mjs
+
+      - name: Ghi link Worker cua Meo (bien MEO_API cua repo, neu co)
+        if: ${{ vars.MEO_API != '' }}
+        env:
+          MEO_API: ${{ vars.MEO_API }}
+        run: |
+          node -e "require('fs').writeFileSync('static/cau-hinh.json', JSON.stringify({ meo_api: process.env.MEO_API }, null, 2) + '\n')"
+          cat static/cau-hinh.json
+
+      - name: Kiem thu don vi
+        run: npm test
+
+      - name: Dung web tinh
+        env:
+          # repo ten-ban.github.io -> web o goc; repo khac -> web o /ten-repo
+          BASE_PATH: ${{ !endsWith(github.event.repository.name, '.github.io') && format('/{0}', github.event.repository.name) || '' }}
+        run: npm run build
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: build
+
+  dua-len:
+    needs: dung
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.trien-khai.outputs.page_url }}
+    steps:
+      - id: trien-khai
+        uses: actions/deploy-pages@v5

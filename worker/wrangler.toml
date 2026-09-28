@@ -1,0 +1,10 @@
+# Chi can neu muon dua Worker len bang dong lenh (npx wrangler deploy) thay vi dan
+# code tren trang Cloudflare. KHONG ghi API key vao day — dung:
+#   npx wrangler secret put GEMINI_API_KEY
+name = "vslink-meo"
+main = "meo-worker.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+# Doi thanh dia chi web cua ban (nhieu dia chi thi cach nhau dau phay)
+ALLOWED_ORIGINS = "https://ten-ban.github.io,http://localhost:5173"
