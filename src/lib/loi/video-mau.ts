@@ -15,8 +15,9 @@ export type VideoMau = {
 	hang?: number;
 	nguon?: 'qipedc' | 'cu';
 };
-/** tot: hang 1 va >= 50 %; kha: hang 1–5; nghi: moi bien the deu bi cham thap; tay: nhom chon tay */
-export type TrangThaiVideo = 'tot' | 'kha' | 'nghi' | 'tay' | 'khong';
+/** tot: hang 1 va >= 50 %; kha: hang 1–5; nghi: moi bien the deu bi cham thap; tay: nhom chon tay;
+ *  cho: nhom tam de trong de xem lai (web khong hien video nao, ke ca link cu) */
+export type TrangThaiVideo = 'tot' | 'kha' | 'nghi' | 'tay' | 'khong' | 'cho';
 export type MucVideo = { trang_thai: TrangThaiVideo; chinh?: VideoMau; khac?: VideoMau[] };
 export type TepVideoMau = { phien_ban: number; ngay?: string; tu: Record<string, MucVideo> };
 

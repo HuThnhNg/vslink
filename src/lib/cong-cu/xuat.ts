@@ -41,10 +41,21 @@ function sangVideo(i: number, u: UngVien, diem: BangDiem): VideoMau {
 	return v;
 }
 
-export function taoTepVideoMau(ungVien: UngVien[][], diem: BangDiem, chon: LuaChon, ngay = new Date()): TepVideoMau {
+/** chiTot: chi dua len web cac tu "Khop tot"; moi tu khac de trong (trang_thai 'cho') cho nhom xem lai. */
+export function taoTepVideoMau(
+	ungVien: UngVien[][],
+	diem: BangDiem,
+	chon: LuaChon,
+	ngay = new Date(),
+	{ chiTot = false } = {}
+): TepVideoMau {
 	const tu: Record<string, MucVideo> = {};
 	ungVien.forEach((uv, i) => {
 		const tt = trangThaiTu(i, uv, diem, chon);
+		if (chiTot && tt !== 'tot') {
+			tu[i] = { trang_thai: 'cho' };
+			return;
+		}
 		if (tt === 'khong') {
 			tu[i] = { trang_thai: 'khong' };
 			return;

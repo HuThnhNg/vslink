@@ -85,6 +85,15 @@ test('cong cu: noi QIPEDC -> khop ten -> cham -> chon tay -> xuat video-mau.json
 	await expect(page.getByTestId('tien-trinh')).toContainText('Đã chấm 22/22');
 	await expect(bb.locator('.the-uv small')).toHaveText(/%/);
 
+	// mac dinh: chi dua len web tu "Khop tot", con lai de trong (ca video cu)
+	await expect(page.getByTestId('chi-tot')).toBeChecked();
+	const [dl0] = await Promise.all([page.waitForEvent('download'), page.getByTestId('xuat').click()]);
+	const tep0 = JSON.parse(await readFile((await dl0.path())!, 'utf8'));
+	expect(Object.keys(tep0.tu)).toHaveLength(400);
+	expect(tep0.tu['0']).toEqual({ trang_thai: 'cho' });
+	expect(Object.values(tep0.tu).every((m) => (m as { trang_thai: string }).trang_thai === 'tot' || !('chinh' in (m as object)))).toBe(true);
+
+	await page.getByTestId('chi-tot').uncheck();
 	const [dl] = await Promise.all([page.waitForEvent('download'), page.getByTestId('xuat').click()]);
 	const tep = JSON.parse(await readFile((await dl.path())!, 'utf8'));
 	expect(tep.phien_ban).toBe(1);

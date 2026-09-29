@@ -91,6 +91,15 @@ describe('xuat video-mau.json va doc lai tren web', () => {
 		expect(videoCua(tep, { ...tuWeb, i: 1 }).daDuyet).toBe(false); // nghi -> khong dung cho do vui
 		expect(videoCua(tep, { ...tuWeb, i: 2, video: 'https://qipedc.moet.gov.vn/videos/D0015B.mp4' }).ds).toEqual([]);
 	});
+	it('chi dua len tu "Khop tot": tu khac thanh "cho", web de trong ca link cu', () => {
+		const tep = taoTepVideoMau(uv, diem, chon, new Date('2026-09-29'), { chiTot: true });
+		expect(tep.tu['0'].trang_thai).toBe('tot');
+		expect(tep.tu['1']).toEqual({ trang_thai: 'cho' });
+		expect(tep.tu['2']).toEqual({ trang_thai: 'cho' });
+		expect(tep.tu['3']).toEqual({ trang_thai: 'cho' }); // chon tay cung tam de trong
+		const cu = { i: 1, tu: 'x', chu_de: 'x', video: 'https://a.workers.dev/x.mp4' };
+		expect(videoCua(tep, cu)).toEqual({ ds: [], daDuyet: false, canhBao: null });
+	});
 });
 
 import { ghepThem, nhomQipedc, timQipedc } from '../../src/lib/cong-cu/khop-tu';

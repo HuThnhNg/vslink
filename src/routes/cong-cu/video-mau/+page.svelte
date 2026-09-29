@@ -68,6 +68,7 @@
 	/** i -> cac ma QIPEDC nhom tu tra va them (ten tren QIPEDC khac ten VSL400) */
 	let them = $state<Record<number, string[]>>({});
 	let lenh = $state('');
+	let chiTot = $state(true);
 	let daChep = $state(false);
 
 	const cauNoi = new CauNoiQipedc((ds, m) => {
@@ -198,7 +199,7 @@
 	}
 
 	function taiXuong() {
-		const tep = taoTepVideoMau(ungVien, diem, chon);
+		const tep = taoTepVideoMau(ungVien, diem, chon, new Date(), { chiTot });
 		const a = document.createElement('a');
 		a.href = URL.createObjectURL(new Blob([JSON.stringify(tep, null, 1)], { type: 'application/json' }));
 		a.download = 'video-mau.json';
@@ -549,6 +550,13 @@
 			<li>Chép đè vào thư mục <code>vslink\static\du-lieu\</code> trên máy.</li>
 			<li>GitHub Desktop → Commit → Push. Khoảng 3 phút sau web dùng video mới.</li>
 		</ol>
+		<label class="chi-tot">
+			<input type="checkbox" bind:checked={chiTot} data-testid="chi-tot" />
+			<span>
+				<b>Chỉ đưa lên web {demTrangThai.tot ?? 0} từ “Khớp tốt”</b> — mọi từ khác tạm để trống (kể cả video cũ), chờ
+				nhóm xem lại. Bỏ chọn để xuất cả từ Khá / Cần xem / chọn tay.
+			</span>
+		</label>
 		<div class="nut-ds">
 			<button class="nut" onclick={taiXuong} data-testid="xuat"><Download size={18} /> Tải video-mau.json</button>
 			<button class="nut vien" onclick={xoaHet}>Xoá kết quả trên máy này</button>
@@ -794,6 +802,21 @@
 		background: var(--nut);
 		color: #fff;
 		cursor: pointer;
+	}
+	.chi-tot {
+		display: flex;
+		gap: 10px;
+		align-items: flex-start;
+		padding: 10px 12px;
+		border-radius: var(--bo-nho);
+		background: var(--nen-2);
+		cursor: pointer;
+	}
+	.chi-tot input {
+		margin-top: 4px;
+		width: 18px;
+		height: 18px;
+		accent-color: var(--nut);
 	}
 	.nut-chu.bo {
 		color: var(--chu-phu);

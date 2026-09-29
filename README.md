@@ -108,7 +108,7 @@ Muốn dùng dòng lệnh thay vì dán code: `cd worker && npx wrangler deploy`
 ## 4. Kiểm thử
 
 ```bash
-npm test            # 50 kiểm thử đơn vị
+npm test            # 51 kiểm thử đơn vị
 npm run check       # kiểm tra kiểu TypeScript / Svelte
 npx playwright install chromium   # lần đầu
 npm run test:e2e    # 20 kịch bản × (máy tính + điện thoại) trên bản build thật
@@ -126,7 +126,7 @@ Một nghĩa có thể có nhiều cách ký (miền Bắc / Trung / Nam…), n�
 2. **Khớp tên** 400 từ với danh sách QIPEDC (trùng tên → bỏ phần trong ngoặc → bỏ "con / quả / cái / màu…").
 3. **Chấm**: mỗi video chạy qua MediaPipe + mô hình như mục *Tải video lên*; cách ký nào mô hình nhận ra rõ nhất thành video chính. Tạm dừng / chấm tiếp được, kết quả lưu trên máy đó.
 4. **Duyệt** nhóm "Cần xem": xem thử, *Chọn* cách đúng, *Tìm thêm* khi tên trên QIPEDC khác tên VSL400, hoặc *Không dùng*.
-5. **Xuất** `video-mau.json` → chép đè vào `static/du-lieu/` → commit, push.
+5. **Xuất** `video-mau.json` (mặc định chỉ đưa lên các từ "Khớp tốt", từ khác tạm để trống) → chép đè vào `static/du-lieu/` → commit, push.
 
 Web chỉ dùng video đã chấm / duyệt: từ chưa có video hiện thông báo "đang duyệt lại"; Đố vui kiểu "xem video" chỉ hỏi những từ đã duyệt (chưa đủ 4 từ thì tạm khoá).
 
