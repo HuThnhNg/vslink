@@ -37,7 +37,7 @@ export function goiGon(d: DuKien) {
 	};
 }
 
-export async function hoiMeo(d: DuKien, { choToiDa = 8000 } = {}): Promise<LoiMeo> {
+export async function hoiMeo(d: DuKien, { choToiDa = 12000 } = {}): Promise<LoiMeo> {
 	const { meo_api } = await napCauHinh();
 	if (meo_api) {
 		const ctrl = new AbortController();
