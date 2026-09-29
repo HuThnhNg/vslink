@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="vi">
+<head><meta charset="utf-8" /><title>QIPEDC (gia lap cho kiem thu)</title></head>
+<body>
+	<!-- Mo phong cau truc trang qipedc.moet.gov.vn/dictionary: phan trang bang nut
+	     #pagination-wrapper, moi o la <a onclick="modalData('MA','tu','giai nghia','false')">,
+	     khung #s_expert nhan duong dan video. -->
+	<iframe id="s_expert" src=""></iframe>
+	<div id="product"></div>
+	<div id="pagination-wrapper"></div>
+	<script>
+		var DU_LIEU = [
+			['D0001B', 'anh', 'Người con trai sinh trước (miền Bắc)'],
+			['D0001N', 'anh', 'Người con trai sinh trước'],
+			['D0001T', 'anh', 'Người con trai sinh trước'],
+			['D0002', 'ba lô', 'Túi đeo sau lưng'],
+			['D0003', 'bia', ''],
+			['D0004', 'Tuy Hoà', ''],
+			['D0005B', 'buổi chiều', ''],
+			['D0005N', 'buổi chiều', ''],
+			['D0006', "cà phê 'sữa'", 'Có dấu nháy trong tên']
+		];
+		var state = { page: 1, rows: 4 };
+		function modalData(ma, tu, giai, co) {
+			document.getElementById('s_expert').setAttribute('src', '/videos/' + ma + '.mp4');
+		}
+		function ve() {
+			var so = Math.ceil(DU_LIEU.length / state.rows);
+			var tr = DU_LIEU.slice((state.page - 1) * state.rows, state.page * state.rows);
+			document.getElementById('product').innerHTML = tr
+				.map(function (x) {
+					var th = function (s) { return s.replace(/'/g, "\\'"); };
+					return '<a onclick="modalData(\'' + x[0] + '\',\'' + th(x[1]) + '\',\'' + th(x[2]) + '\',\'false\' )"><img src="/thumbs/' + x[0] + '.png"><p>' + x[1] + '</p></a>';
+				})
+				.join('');
+			var w = document.getElementById('pagination-wrapper');
+			w.innerHTML = '';
+			for (var p = Math.max(1, state.page - 2); p <= Math.min(so, state.page + 2); p++)
+				w.innerHTML += '<button value="' + p + '" class="page">' + p + '</button>';
+			if (state.page !== so) w.innerHTML += '<button value="' + so + '" class="page">Last »</button>';
+			w.querySelectorAll('button').forEach(function (b) {
+				b.addEventListener('click', function () { state.page = Number(b.value); ve(); });
+			});
+		}
+		ve();
+	</script>
+</body>
+</html>

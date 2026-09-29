@@ -4,6 +4,7 @@ import { base } from '$app/paths';
 export const DUONG_DAN = {
 	moHinh: `${base}/models/vsl400.onnx`,
 	cauHinh: `${base}/cau-hinh.json`,
+	videoMau: `${base}/du-lieu/video-mau.json`,
 	kiemTra: `${base}/kiem-tra/vector.json`,
 	viDuKiemTra: `${base}/kiem-tra/vi_du_kiem_tra.json`,
 	// MediaPipe Holistic: uu tien tep tu phuc vu (GitHub Actions tai ve luc build),

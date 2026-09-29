@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { base } from '$app/paths';
 	import { DUONG_DAN } from '$lib/loi/duong-dan';
 	import { chayMoHinh } from '$lib/loi/mo-hinh';
 	import { napHolistic } from '$lib/loi/nhan-dang';
@@ -205,6 +206,8 @@
 			{#if chanDoan}<p class="chan-doan" data-testid="chan-doan-worker">{chanDoan}</p>{/if}
 		</div>
 	</section>
+
+	<p class="cong-cu">Công cụ cho nhóm: <a href="{base}/cong-cu/video-mau/">Chọn lại video mẫu từ QIPEDC →</a></p>
 </div>
 
 <style>
@@ -253,6 +256,10 @@
 		margin-top: 10px;
 		font-weight: 700;
 		color: var(--chu-phu);
+	}
+	.cong-cu {
+		color: var(--chu-phu);
+		font-weight: 700;
 	}
 	.bong-noi {
 		margin-top: 14px;

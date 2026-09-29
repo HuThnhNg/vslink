@@ -67,3 +67,29 @@ describe('tu vung', () => {
 		expect([...b].sort((x, y) => x - y)).toEqual(a);
 	});
 });
+
+import { dongGoi as dg, noiSuy } from '../../src/lib/loi/lay-mau';
+
+describe('noi suy theo thoi gian (ky truc tiep)', () => {
+	const khung = (t: number, x: number, co = true) => {
+		const kp = new Float32Array(150);
+		if (co) for (let d = 0; d < 75; d++) (kp[d * 2] = x), (kp[d * 2 + 1] = 0.5);
+		return { t, kp };
+	};
+	it('chuyen dong deu, camera giat (khoang cach khong deu) -> 60 moc van deu theo thoi gian', () => {
+		const ts = [0, 0.05, 0.3, 0.32, 0.9, 1.0];
+		const ra = noiSuy(ts.map((t) => khung(t, 0.2 + 0.5 * t)));
+		for (let j = 0; j < 60; j++) expect(ra[j * 150]).toBeCloseTo(0.2 + (0.5 * j) / 59, 5);
+	});
+	it('diem mat o mot khung -> lay khung gan hon, khong noi suy voi (0,0)', () => {
+		const ra = noiSuy([khung(0, 0.3), khung(1, 0, false), khung(2, 0.7)]);
+		for (let j = 0; j < 60; j++) {
+			const x = ra[j * 150];
+			expect(x === 0 || Math.abs(x - 0.3) < 1e-6 || Math.abs(x - 0.7) < 1e-6).toBe(true);
+		}
+	});
+	it('mot khung / thoi gian bang nhau -> nhu dong goi thuong', () => {
+		const k = khung(0, 0.4);
+		expect(Array.from(noiSuy([k]))).toEqual(Array.from(dg([k.kp])));
+	});
+});

@@ -16,7 +16,8 @@
 	import { PhienCamera } from '$lib/loi/camera.svelte';
 	import { mucDoTuHang, topK, xepHang, type MucDo } from '$lib/loi/danh-gia';
 	import { LOI_BO } from '$lib/loi/dinh-dang';
-	import { dongGoi } from '$lib/loi/lay-mau';
+	import { noiSuy } from '$lib/loi/lay-mau';
+	import { napVideoMau, videoCua, type TepVideoMau } from '$lib/loi/video-mau';
 	import { chayMoHinh } from '$lib/loi/mo-hinh';
 	import { NHAN, TEN_CHU_DE, TU_VUNG, tuTheoChuDe, xaoTron, type Tu } from '$lib/loi/tu-vung';
 	import { tienDo } from '$lib/kho/tien-do.svelte';
@@ -94,10 +95,18 @@
 		return xaoTron([...denHan, ...daTap, ...moi].slice(0, n));
 	}
 
+	// Video mau: kieu "xem" chi dung tu co video DA DUYET (video sai thi do sai).
+	let tepVideo = $state<TepVideoMau>({ phien_ban: 0, tu: {} });
+	let daNapVideo = $state(false);
+	const coVideo = $derived(TU_VUNG.tu.filter((t) => videoCua(tepVideo, t).daDuyet));
+	const coVideoChuDe = $derived(coVideo.filter(trongChuDe));
+	const nguonXem = $derived(coVideoChuDe.length >= 4 ? coVideoChuDe : coVideo);
+
 	function batDau(kieuMoi: Kieu) {
+		if (kieuMoi === 'xem' && nguonXem.length < 4) return;
 		kieu = kieuMoi;
 		const n = SO_CAU[kieuMoi];
-		const tu = kieuMoi === 'xem' ? xaoTron(TU_VUNG.tu.filter(trongChuDe)).slice(0, n) : chonTuKy(n);
+		const tu = kieuMoi === 'xem' ? xaoTron(nguonXem).slice(0, n) : chonTuKy(n);
 		ds = tu.map((t) => ({
 			tu: t,
 			lua: kieuMoi === 'xem' ? taoLuaChon(t) : [],
@@ -154,7 +163,7 @@
 			if (man !== 'choi' || kieu !== 'ky' || !c || c.ket === 'dung') return;
 			dangCham = true;
 			try {
-				const p = await chayMoHinh(dongGoi(khung.map((f) => f.kp)));
+				const p = await chayMoHinh(noiSuy(khung));
 				if (k !== kk || man !== 'choi') return;
 				const hang = xepHang(p, c.tu.i);
 				c.hang = hang;
@@ -209,8 +218,10 @@
 		else if (cau.chon !== null && (e.key === 'Enter' || e.key === 'ArrowRight')) cauTiep();
 	}
 
-	onMount(() => {
+	onMount(async () => {
 		tienDo.nap();
+		tepVideo = await napVideoMau();
+		daNapVideo = true;
 		giaLap = page.url.searchParams.has('gia-lap');
 		const kieuUrl = page.url.searchParams.get('kieu');
 		if (kieuUrl === 'xem' || kieuUrl === 'ky') batDau(kieuUrl);
@@ -232,11 +243,24 @@
 		</header>
 
 		<div class="hai-kieu">
-			<button class="the kieu" onclick={() => batDau('xem')} data-testid="choi-xem">
+			<button
+				class="the kieu"
+				onclick={() => batDau('xem')}
+				data-testid="choi-xem"
+				disabled={!daNapVideo || nguonXem.length < 4}
+			>
 				<span class="bieu-tuong xanh"><Eye size={28} /></span>
 				<h2>Xem ký hiệu — đoán nghĩa</h2>
 				<p class="phu-de">Xem video mẫu, chọn nghĩa đúng trong 4 đáp án. {SO_CAU.xem} câu, đáp án nhiễu cùng chủ đề.</p>
-				<span class="nut">Chơi ngay <ArrowRight size={18} /></span>
+				{#if daNapVideo && nguonXem.length < 4}
+					<p class="tam-khoa" data-testid="xem-tam-khoa">
+						Nhóm đang duyệt lại video mẫu cho đúng cách ký ({coVideo.length}/400 từ đã xong). Quay lại sau nhé!
+					</p>
+				{:else if daNapVideo && coVideoChuDe.length < 4 && chuDe !== 'tat-ca'}
+					<p class="tam-khoa">Chủ đề này chưa đủ video đã duyệt — Mèo lấy từ mọi chủ đề.</p>
+				{:else}
+					<span class="nut">Chơi ngay <ArrowRight size={18} /></span>
+				{/if}
 			</button>
 			<button class="the kieu" onclick={() => batDau('ky')} data-testid="choi-ky">
 				<span class="bieu-tuong cam"><Hand size={28} /></span>
@@ -274,7 +298,7 @@
 				<section class="the">
 					<h2 class="tieu-de-nho">Ký hiệu này nghĩa là gì?</h2>
 					{#key k}
-						<VideoMau src={cau.tu.video} tu={cau.chon === null ? '?' : cau.tu.tu} />
+						<VideoMau ds={videoCua(tepVideo, cau.tu).ds.slice(0, 1)} tu={cau.chon === null ? '?' : cau.tu.tu} />
 					{/key}
 				</section>
 				<section class="the cot-dap-an">
@@ -360,7 +384,8 @@
 					</div>
 					{#if cau.xemGoiY}
 						<p class="nho">Đã xem gợi ý: câu này không tính vào lịch ôn tập.</p>
-						<VideoMau src={cau.tu.video} tu={cau.tu.tu} guongMacDinh />
+						{@const v = videoCua(tepVideo, cau.tu)}
+						<VideoMau ds={v.ds} tu={cau.tu.tu} canhBao={v.canhBao} guongMacDinh />
 					{/if}
 				</section>
 			</div>
@@ -423,6 +448,20 @@
 		transition:
 			transform 0.15s ease,
 			border-color 0.15s ease;
+	}
+	.kieu:disabled {
+		cursor: not-allowed;
+		opacity: 0.75;
+		transform: none;
+	}
+	.tam-khoa {
+		margin: 0;
+		padding: 8px 12px;
+		border-radius: var(--bo-nho);
+		background: var(--vang-nhat);
+		color: var(--vang-chu);
+		font-weight: 750;
+		font-size: 0.9rem;
 	}
 	.kieu:hover {
 		transform: translateY(-3px);

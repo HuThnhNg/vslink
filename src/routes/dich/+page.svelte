@@ -15,7 +15,7 @@
 	import { doChatLuong, topK, type ChatLuong, type DuDoan } from '$lib/loi/danh-gia';
 	import { goiYGhiHinh, LOI_BO, phanTram, soGiay } from '$lib/loi/dinh-dang';
 	import { DANH_GIA } from '$lib/loi/hang-so';
-	import { dongGoi } from '$lib/loi/lay-mau';
+	import { dongGoi, noiSuy } from '$lib/loi/lay-mau';
 	import { chayMoHinh } from '$lib/loi/mo-hinh';
 	import { NHAN } from '$lib/loi/tu-vung';
 	import { docVideo, LoiMediaPipe } from '$lib/loi/video-tai-len';
@@ -38,7 +38,8 @@
 	async function cham(khung: KhungVao[], thoiLuong: number, nguon: KetQua['nguon']) {
 		const kp = khung.map((k) => k.kp);
 		try {
-			const p = await chayMoHinh(dongGoi(kp));
+			// camera chay khong deu -> noi suy theo thoi gian; video tai len deu -> lay nhu notebook
+			const p = await chayMoHinh(nguon === 'camera' ? noiSuy(khung) : dongGoi(kp));
 			const top = topK(p, NHAN, 5);
 			ketQua = { top, chatLuong: doChatLuong(kp, thoiLuong), nguon };
 			thongBao = null;

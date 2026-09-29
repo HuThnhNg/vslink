@@ -18,6 +18,8 @@
 	import { danhGia, doChatLuong, taoBatchCheBot, topK, type DuDoan, type DuKien } from '$lib/loi/danh-gia';
 	import { goiYGhiHinh, LOI_BO, phanTram } from '$lib/loi/dinh-dang';
 	import { chayMoHinh } from '$lib/loi/mo-hinh';
+	import { noiSuy } from '$lib/loi/lay-mau';
+	import { napVideoMau, videoCua, type TepVideoMau } from '$lib/loi/video-mau';
 	import { NHAN, TEN_CHU_DE, TU_VUNG, tuTheoChuDe, type Tu } from '$lib/loi/tu-vung';
 	import { HOP_CAO_NHAT, HOP_THUOC, KHOANG_ON, tienDo } from '$lib/kho/tien-do.svelte';
 	import { hoiMeo, type LoiMeo } from '$lib/meo/hoi-meo';
@@ -34,6 +36,10 @@
 
 	let { tu, giaLap = false }: { tu: Tu; giaLap?: boolean } = $props();
 
+	let tepVideo = $state<TepVideoMau>({ phien_ban: 0, tu: {} });
+	napVideoMau().then((t) => (tepVideo = t));
+	const video = $derived(videoCua(tepVideo, tu));
+
 	type KetQua = { id: number; duKien: DuKien; top: DuDoan[]; loiMeo: LoiMeo | null };
 	let ketQua = $state<KetQua | null>(null);
 	let thongBao = $state<string | null>(null);
@@ -49,7 +55,7 @@
 		const kp = khung.map((k) => k.kp);
 		let probs: Float32Array;
 		try {
-			probs = await chayMoHinh(taoBatchCheBot(kp));
+			probs = await chayMoHinh(taoBatchCheBot(noiSuy(khung)));
 		} catch (e) {
 			console.error(e);
 			loiCham = 'Mèo không chạy được mô hình nhận dạng (có thể do mạng yếu khi tải lần đầu). Tải lại trang rồi thử nhé.';
@@ -160,7 +166,7 @@
 	<div class="luoi">
 		<section class="the o-mau" aria-label="Video mẫu">
 			<h2 class="tieu-de-nho">1 · Xem mẫu</h2>
-			<VideoMau src={tu.video} tu={tu.tu} />
+			<VideoMau ds={video.ds} tu={tu.tu} canhBao={video.canhBao} />
 		</section>
 
 		<section class="the o-cam" aria-label="Camera của bạn">

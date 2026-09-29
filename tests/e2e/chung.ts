@@ -40,3 +40,20 @@ export async function anh(
 	await page.waitForTimeout(400); // cho hieu ung chuyen dong xong
 	await page.screenshot({ path: `anh-chup/${info.project.name}-${ten}.png`, fullPage: ca });
 }
+
+/** Gia lap tep static/du-lieu/video-mau.json (mac dinh: ca 400 tu da duyet, mien Nam). */
+export async function coVideoMau(page: Page, tu?: Record<string, unknown>) {
+	const ds =
+		tu ??
+		Object.fromEntries(
+			Array.from({ length: 400 }, (_, i) => [
+				String(i),
+				{
+					trang_thai: 'tot',
+					chinh: { url: `https://qipedc.moet.gov.vn/videos/T${i}N.mp4`, ma: `T${i}N`, mien: 'nam', p: 0.8, hang: 1, nguon: 'qipedc' },
+					khac: []
+				}
+			])
+		);
+	await page.route('**/du-lieu/video-mau.json', (r) => r.fulfill({ json: { phien_ban: 1, tu: ds } }));
+}

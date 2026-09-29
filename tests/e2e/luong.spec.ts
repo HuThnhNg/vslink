@@ -2,7 +2,7 @@
 // -> ket qua / Meo nhan xet / tien do. MediaPipe that khong chay duoc tren may cham
 // (khong tai duoc mo hinh tu Google) nen phan do kiem o trang /kiem-tra tren may that.
 import { expect, test } from '@playwright/test';
-import { anh, chuanBi, VIDEO_GIA } from './chung';
+import { anh, chuanBi, coVideoMau, VIDEO_GIA } from './chung';
 
 test('dich: nguoi que ky -> Meo doan ra mot tu, top 5, phu de tren camera', async ({ page }, info) => {
 	const loi = await chuanBi(page);
@@ -86,6 +86,7 @@ test('hoc: co Worker -> Meo noi bang AI, chi gui du kien (khong gui hinh / keypo
 
 test('do vui xem: 10 cau -> tong ket', async ({ page }, info) => {
 	const loi = await chuanBi(page);
+	await coVideoMau(page);
 	await page.goto('do-vui/');
 	await page.getByTestId('choi-xem').click();
 	for (let i = 0; i < 10; i++) {

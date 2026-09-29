@@ -1,23 +1,39 @@
 <!--
-	Video mau cua mot tu (Tu dien Ngon ngu ky hieu — QIPEDC). Lap lai, chinh toc do,
-	lat kieu soi guong cho de bat chuoc. Khong tai duoc thi cho link mo tab moi.
+	Video mau cua mot tu (Tu dien Ngon ngu ky hieu — QIPEDC). ds[0] = cach ky Meo cham,
+	cac phan tu sau = cach ky khac (mien Bac / Trung / Nam) de nguoi hoc biet them.
+	Lap lai, chinh toc do, lat soi guong. Chua co video da duyet -> bao ro, khong doan bua.
 -->
 <script lang="ts">
 	import ArrowLeftRight from '@lucide/svelte/icons/arrow-left-right';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 	import VideoOff from '@lucide/svelte/icons/video-off';
+	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
+	import { nhanVideo, TEN_MIEN, type VideoMau } from '$lib/loi/video-mau';
 
-	let { src, tu, guongMacDinh = false }: { src: string; tu: string; guongMacDinh?: boolean } = $props();
+	let {
+		ds,
+		tu,
+		canhBao = null,
+		guongMacDinh = false
+	}: { ds: VideoMau[]; tu: string; canhBao?: string | null; guongMacDinh?: boolean } = $props();
 
 	const TOC_DO = [0.5, 0.75, 1];
 	let video: HTMLVideoElement | undefined = $state();
 	let tocDo = $state(1);
 	// svelte-ignore state_referenced_locally
 	let guong = $state(guongMacDinh);
+	let chon = $state(0);
 	let trangThai = $state<'tai' | 'chay' | 'loi'>('tai');
 	let tiLe = $state('16 / 9');
 
-	// doi tu -> tai lai tu dau
+	const hienTai = $derived(ds[Math.min(chon, ds.length - 1)] as VideoMau | undefined);
+	const src = $derived(hienTai?.url ?? '');
+
+	// doi tu -> ve video chinh; doi video -> tai lai
+	$effect(() => {
+		void ds;
+		chon = 0;
+	});
 	$effect(() => {
 		void src;
 		trangThai = 'tai';
@@ -34,8 +50,26 @@
 </script>
 
 <div class="video-mau">
+	{#if ds.length > 1}
+		<div class="tab-cach" role="tablist" aria-label="Các cách ký">
+			{#each ds as v, k (v.url)}
+				<button role="tab" aria-selected={chon === k} class:chinh={k === 0} onclick={() => (chon = k)}>
+					{nhanVideo(v, k)}
+				</button>
+			{/each}
+		</div>
+	{/if}
+
 	<div class="khung" style:aspect-ratio={tiLe}>
-		{#if trangThai === 'loi'}
+		{#if !hienTai}
+			<div class="loi">
+				<VideoOff size={28} />
+				<p>Video mẫu của “{tu}” đang được nhóm duyệt lại cho đúng cách ký.</p>
+				<a href="https://qipedc.moet.gov.vn/dictionary" target="_blank" rel="noopener noreferrer" class="nut nho vien">
+					Tra từ điển QIPEDC <ExternalLink size={14} />
+				</a>
+			</div>
+		{:else if trangThai === 'loi'}
 			<div class="loi">
 				<VideoOff size={28} />
 				<p>Chưa tải được video mẫu của “{tu}”.</p>
@@ -63,29 +97,62 @@
 			{/if}
 		{/if}
 	</div>
-	<div class="dieu-khien">
-		<div class="nhom" role="group" aria-label="Tốc độ phát video mẫu">
-			{#each TOC_DO as t (t)}
-				<button class="chip" aria-pressed={tocDo === t} onclick={() => (tocDo = t)}>
-					{String(t).replace('.', ',')}×
-				</button>
-			{/each}
+
+	{#if hienTai}
+		<div class="dieu-khien">
+			<div class="nhom" role="group" aria-label="Tốc độ phát video mẫu">
+				{#each TOC_DO as t (t)}
+					<button class="chip" aria-pressed={tocDo === t} onclick={() => (tocDo = t)}>
+						{String(t).replace('.', ',')}×
+					</button>
+				{/each}
+			</div>
+			<button
+				class="chip"
+				aria-pressed={guong}
+				onclick={() => (guong = !guong)}
+				title="Lật như soi gương: tay phải người mẫu nằm bên phải màn hình, dễ bắt chước hơn"
+			>
+				<ArrowLeftRight size={15} /> Soi gương
+			</button>
 		</div>
-		<button
-			class="chip"
-			aria-pressed={guong}
-			onclick={() => (guong = !guong)}
-			title="Lật như soi gương: tay phải người mẫu nằm bên phải màn hình, dễ bắt chước hơn"
-		>
-			<ArrowLeftRight size={15} /> Soi gương
-		</button>
-	</div>
-	<p class="nguon">Video mẫu: Từ điển Ngôn ngữ ký hiệu — dự án QIPEDC, Bộ GD&ĐT</p>
+	{/if}
+	{#if canhBao}
+		<p class="canh-bao"><TriangleAlert size={15} /> {canhBao}</p>
+	{/if}
+	{#if hienTai}
+		<p class="nguon">
+			{hienTai.nguon === 'cu' ? 'Video mẫu' : 'Video mẫu: Từ điển Ngôn ngữ ký hiệu — dự án QIPEDC, Bộ GD&ĐT'}{hienTai.mien
+				? ` · Ký hiệu ${TEN_MIEN[hienTai.mien]}`
+				: ''}
+		</p>
+	{/if}
 </div>
 
 <style>
 	.video-mau {
 		margin: 0;
+	}
+	.tab-cach {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		margin-bottom: 10px;
+	}
+	.tab-cach button {
+		border: 1.5px solid var(--vien);
+		background: var(--the);
+		color: var(--chu-phu);
+		border-radius: 999px;
+		padding: 5px 12px;
+		font-weight: 800;
+		font-size: 0.82rem;
+		cursor: pointer;
+	}
+	.tab-cach button[aria-selected='true'] {
+		background: var(--nut);
+		border-color: var(--nut);
+		color: #fff;
 	}
 	.khung {
 		position: relative;
@@ -145,6 +212,7 @@
 	}
 	.loi p {
 		margin: 0;
+		max-width: 36ch;
 	}
 	.loi .nut {
 		color: #fff;
@@ -163,6 +231,18 @@
 	}
 	.chip {
 		font-variant-numeric: tabular-nums;
+	}
+	.canh-bao {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin: 8px 0 0;
+		padding: 6px 10px;
+		border-radius: var(--bo-nho);
+		background: var(--vang-nhat);
+		color: var(--vang-chu);
+		font-size: 0.82rem;
+		font-weight: 750;
 	}
 	.nguon {
 		margin: 8px 0 0;

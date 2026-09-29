@@ -34,6 +34,7 @@ Camera ──► MediaPipe Holistic ──► 75 điểm/khung ──► đưa v
 - **Tay trái / tay phải đúng như lúc huấn luyện**: dùng Holistic (gán tay theo cơ thể người ký) trên ảnh THẬT, chỉ lật gương lúc hiển thị. Bản web cũ dùng HandLandmarker trên ảnh chưa lật nên bị đảo tay.
 - **Khung vuông**: dữ liệu VSL400 quay 1080×1080; webcam 16:9 được đệm thành khung vuông ảo (không cắt hình) để dáng người không bị kéo dãn.
 - **Cắt đoạn tự động** (`src/lib/loi/cat-doan.ts`): máy trạng thái CHỜ → ĐANG KÝ → ĐANG CHẤM → NGHỈ, mọi ngưỡng tính bằng **giây** nên không phụ thuộc máy nhanh hay chậm.
+- **60 khung**: video tải lên lấy mẫu `linspace` y như notebook; ký trực tiếp thì lấy 60 mốc **cách đều theo thời gian** (nội suy giữa hai khung gần nhất, `noiSuy` trong `lay-mau.ts`) để máy lag / tụt hình không làm lệch nhịp động tác.
 - **Chấm khi học** (`src/lib/loi/danh-gia.ts`): Đúng = mô hình xếp từ đó hạng 1; Gần đúng = hạng 2–5; Chưa đúng = hạng 6 trở xuống. "Bộ phận/đoạn nào khác mẫu" đo bằng **che bớt** (occlusion sensitivity — Zeiler & Fergus, ECCV 2014): che bàn tay trái / phải / cánh tay và "đứng hình" từng đoạn đầu–giữa–cuối, chạy lại mô hình trong **một** lần (batch 7).
 - **Mèo nhận xét**: web chỉ gửi **dữ kiện đã đo** (từ, hạng, %, nhãn bộ phận…, không gửi hình hay toạ độ) tới Cloudflare Worker → Gemini **diễn đạt lại**; đúng/sai luôn do mô hình quyết định. Không có Worker, mất mạng hay hết lượt → Mèo dùng lời soạn sẵn.
 
@@ -107,15 +108,27 @@ Muốn dùng dòng lệnh thay vì dán code: `cd worker && npx wrangler deploy`
 ## 4. Kiểm thử
 
 ```bash
-npm test            # 35 kiểm thử đơn vị
+npm test            # 50 kiểm thử đơn vị
 npm run check       # kiểm tra kiểu TypeScript / Svelte
 npx playwright install chromium   # lần đầu
-npm run test:e2e    # 16 kịch bản × (máy tính + điện thoại) trên bản build thật
+npm run test:e2e    # 20 kịch bản × (máy tính + điện thoại) trên bản build thật
 ```
 
-- **Đơn vị** (`tests/unit/`): lấy 60 khung khớp `np.linspace(...).astype(int)` của notebook, đổi toạ độ sang khung vuông, gán tay trái/phải, máy cắt đoạn (máy nhanh/chậm, rung tay, mất người, ký quá ngắn, giơ tay đứng yên), chấm + che bớt, lời Mèo soạn sẵn, hộp Leitner, Worker (giả lập Gemini: model ngừng → thử model sau, key sai, từ lạ, sai nguồn, hết lượt).
-- **Trình duyệt** (`tests/e2e/`): ONNX Runtime Web khớp ONNX Runtime Python; mọi trang mở không lỗi, không tràn ngang; luồng Dịch / Học / Đố vui / Tiến độ bằng "người que"; Mèo AI qua Worker giả lập và **chỉ gửi đúng 12 trường dữ kiện**; báo lỗi dễ hiểu khi không tải được MediaPipe. Chạy cả với `BASE_PATH=/vslink` như trên GitHub Pages.
+- **Đơn vị** (`tests/unit/`): lấy 60 khung khớp `np.linspace(...).astype(int)` của notebook, đổi toạ độ sang khung vuông, gán tay trái/phải, máy cắt đoạn (máy nhanh/chậm, rung tay, mất người, ký quá ngắn, giơ tay đứng yên), chấm + che bớt, lời Mèo soạn sẵn, hộp Leitner, Worker (giả lập Gemini: model ngừng → thử model sau, key sai, từ lạ, sai nguồn, hết lượt), nội suy theo thời gian cho ký trực tiếp, khớp tên với QIPEDC và xuất `video-mau.json`.
+- **Trình duyệt** (`tests/e2e/`): ONNX Runtime Web khớp ONNX Runtime Python; mọi trang mở không lỗi, không tràn ngang; luồng Dịch / Học / Đố vui / Tiến độ bằng "người que"; Mèo AI qua Worker giả lập và **chỉ gửi đúng 12 trường dữ kiện**; báo lỗi dễ hiểu khi không tải được MediaPipe; công cụ chọn video mẫu chạy trọn vòng với một trang QIPEDC giả (nối tab → khớp → chấm → tra tay → xuất). Chạy cả với `BASE_PATH=/vslink` như trên GitHub Pages.
 - **Kiểm với video thật từ notebook**: chép tệp `vi_du_kiem_tra.json` (notebook xuất ra) vào `static/kiem-tra/` → trang `/kiem-tra/` so top-5 của trình duyệt với notebook.
+
+## 5. Chọn lại video mẫu (công cụ cho nhóm)
+
+Một nghĩa có thể có nhiều cách ký (miền Bắc / Trung / Nam…), nên video mẫu phải là **đúng cách mà mô hình (và Mèo) chấm**. Trang `/cong-cu/video-mau/` (có link ở cuối `/kiem-tra/`) làm việc này ngay trên trình duyệt:
+
+1. **Nối QIPEDC**: bấm *Mở QIPEDC* → ở tab QIPEDC mở F12 → Console → dán đoạn lệnh của trang (lần đầu Chrome bắt gõ `allow pasting`). Đoạn lệnh chỉ đọc danh sách công khai và tải video QIPEDC giúp trang công cụ (trình duyệt không cho trang khác đọc hình video QIPEDC trực tiếp). Để tab QIPEDC mở trong lúc chấm.
+2. **Khớp tên** 400 từ với danh sách QIPEDC (trùng tên → bỏ phần trong ngoặc → bỏ "con / quả / cái / màu…").
+3. **Chấm**: mỗi video chạy qua MediaPipe + mô hình như mục *Tải video lên*; cách ký nào mô hình nhận ra rõ nhất thành video chính. Tạm dừng / chấm tiếp được, kết quả lưu trên máy đó.
+4. **Duyệt** nhóm "Cần xem": xem thử, *Chọn* cách đúng, *Tìm thêm* khi tên trên QIPEDC khác tên VSL400, hoặc *Không dùng*.
+5. **Xuất** `video-mau.json` → chép đè vào `static/du-lieu/` → commit, push.
+
+Web chỉ dùng video đã chấm / duyệt: từ chưa có video hiện thông báo "đang duyệt lại"; Đố vui kiểu "xem video" chỉ hỏi những từ đã duyệt (chưa đủ 4 từ thì tạm khoá).
 
 ## Giới hạn đã biết
 
@@ -123,7 +136,7 @@ npm run test:e2e    # 16 kịch bản × (máy tính + điện thoại) trên b�
 - Chỉ 400 từ đơn, ký từng từ một (không dịch câu).
 - MediaPipe Holistic tính cả lưới khuôn mặt nên máy yếu có thể dưới 6 hình/giây — web sẽ cảnh báo; khi đó dùng *Tải video lên* (đọc từng hình, không phụ thuộc tốc độ máy).
 - Video HEVC của một số điện thoại có thể không mở được trên Chrome/Edge — quay lại ở định dạng H.264 hoặc WebM.
-- Video mẫu lấy trực tiếp từ QIPEDC; nếu trang đó chặn, web hiện nút mở video ở tab mới.
+- Video mẫu phát trực tiếp từ QIPEDC; nếu trang đó chặn, web hiện nút mở video ở tab mới. Độ giống giữa video QIPEDC và cách ký VSL400 là do mô hình chấm — từ bị gắn cờ vẫn cần người xem lại.
 - Tiến độ lưu theo trình duyệt: đổi máy / xoá dữ liệu trình duyệt là mất.
 
 ## Cấu trúc thư mục
@@ -135,8 +148,11 @@ src/lib/meo/        Mèo (SVG), lời soạn sẵn, gọi Worker
 src/lib/kho/        tiến độ + hộp Leitner (localStorage)
 src/lib/hoc/        thư viện từ, trang tập ký
 src/lib/thanh-phan/ khung camera, video mẫu, top 5, bảng bộ phận, logo
-src/routes/         trang chủ, dich, hoc, do-vui, tien-do, kiem-tra
-src/lib/du-lieu/    nhan.json (400 nhãn đúng thứ tự mô hình), tu-vung.json (chủ đề + link video)
+src/lib/cong-cu/    công cụ chọn video mẫu: khớp tên QIPEDC, cầu nối tab, chấm, xuất
+src/routes/         trang chủ, dich, hoc, do-vui, tien-do, kiem-tra, cong-cu/video-mau
+src/lib/du-lieu/    nhan.json (400 nhãn đúng thứ tự mô hình), tu-vung.json (chủ đề + link video cũ)
+static/du-lieu/     video-mau.json (video mẫu đã chấm / duyệt — tạo bằng công cụ ở mục 5)
+static/cong-cu/     lenh-qipedc.js (đoạn lệnh dán vào Console của QIPEDC)
 static/models/      vsl400.onnx (đầu vào [B, 60, 75, 2] toạ độ thô → xác suất [B, 400])
 worker/             Cloudflare Worker của Mèo
 scripts/            chép wasm, tải mô hình MediaPipe, tạo dữ liệu từ vựng / vector kiểm tra

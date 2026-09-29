@@ -58,9 +58,12 @@ function dungYen(x: Float32Array, k: number) {
 	for (let t = a; t < b; t++) x.set(khung, t * SO_DIEM * 2);
 }
 
-/** Batch [7, 60, 75, 2]: ban goc + 3 ban bo bo phan + 3 ban dung yen tung giai doan. */
-export function taoBatchCheBot(khung: Khung[]): Float32Array {
-	const goc = dongGoi(khung);
+/**
+ * Batch [7, 60, 75, 2]: ban goc + 3 ban bo bo phan + 3 ban dung yen tung giai doan.
+ * dauVao: cac khung (lay 60 theo chi so) hoac mang 60 khung da dong goi san (noiSuy).
+ */
+export function taoBatchCheBot(dauVao: Khung[] | Float32Array): Float32Array {
+	const goc = dauVao instanceof Float32Array ? dauVao : dongGoi(dauVao);
 	const moi = goc.length;
 	const ra = new Float32Array(BIEN_THE.length * moi);
 	BIEN_THE.forEach((ten, b) => {
