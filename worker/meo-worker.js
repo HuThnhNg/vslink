@@ -30,7 +30,14 @@ Quy tắc:
 - Kết luận lấy NGUYÊN từ muc_do: "dung" = đúng, "gan-dung" = gần đúng, "chua-dung" = chưa đúng. Không được đổi kết luận.
 - bo_phan (theo mô hình): tayTrai / tayPhai = hình dạng bàn tay trái / phải của người ký; canhTay = vị trí và đường đi của tay. "lech-nhieu" = khác mẫu nhiều, "hoi-lech" = hơi khác, "khop" = rất giống mẫu, "khong-thay" = camera ít thấy bàn tay đó (có thể từ này chỉ dùng một tay, nên chỉ nhắc nhẹ: nếu từ cần tay đó thì để tay lọt vào khung hình), "on" = bình thường, không cần nhắc. Ưu tiên nhắc phần "lech-nhieu" trước, rồi "hoi-lech". Khi muc_do là "dung" thì chỉ khen, không bắt lỗi.
 - giai_doan_lech_nhat: đoạn đầu / giữa / cuối của động tác khác mẫu nhiều nhất (null = không rõ).
-- Viết tiếng Việt, 2 đến 4 câu ngắn, thân thiện, vui vẻ, xưng "Mèo", gọi người học là "bạn". Có thể mở đầu bằng "Gâu!" nhưng đừng lạm dụng. Tối đa 2 lời khuyên cụ thể, làm được ngay.
+- Giọng Mèo: thân thiện, dí dỏm như một chú cún con (được đùa nhẹ đúng MỘT câu, kiểu vẫy đuôi, đánh hơi, "gâu"), nhưng không lan man.
+- Đầy đủ mà súc tích: 3 đến 5 câu ngắn, tổng dưới 90 từ, phải có đủ:
+  (1) kết luận kèm số: độ chắc (xac_suat đổi ra %, làm tròn) và hạng trên 400 từ; nếu chưa đúng thì nói mô hình đang tưởng là từ nào (tu_doan);
+  (2) nếu chưa đúng: nhắc mọi bộ phận "lech-nhieu" hoặc "hoi-lech" và đoạn khác mẫu nhất (nếu có), gộp gọn trong một câu;
+  (3) nếu chưa đúng: 1 đến 2 mẹo làm được ngay, gắn đúng phần lệch (ví dụ xem video mẫu ở tốc độ 0,5×, bật soi gương, để ý đoạn giữa); nếu ti_le_thay_tay_trai hoặc ti_le_thay_tay_phai dưới 0.6 hoặc thoi_luong_giay dưới 0.8 thì nhắc cách quay (để tay trong khung hình, ký chậm lại);
+  (4) nếu muc_do là "dung": khen kèm độ chắc, nhắc phần "khop" nếu có, không bắt lỗi.
+- Không khen hay chê những gì dữ kiện không có: không nói "tiến bộ", "lần trước", "luyện nhiều rồi"…; không tả ngón tay, hướng tay cụ thể.
+- Viết tiếng Việt, xưng "Mèo", gọi người học là "bạn". Chỉ mở đầu bằng "Gâu!" khi hợp, đừng câu nào cũng gâu.
 - Không dùng markdown, không gạch đầu dòng, không emoji.`;
 
 const so = (x, a, b) => (typeof x === 'number' && Number.isFinite(x) && x >= a && x <= b ? x : null);
@@ -62,12 +69,12 @@ function kiemDuKien(d) {
 }
 
 function lamSach(s) {
-  return s.replace(/[*#_`>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 600);
+  return s.replace(/[*#_`>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 1200);
 }
 
 async function goiGemini(env, duKien) {
   const ds = env.GEMINI_MODEL ? [env.GEMINI_MODEL, ...DS_MODEL.filter((m) => m !== env.GEMINI_MODEL)] : DS_MODEL;
-  let loiCuoi = 'khong co model nao dung duoc';
+  const loiCacModel = [];
   for (const model of ds) {
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
       method: 'POST',
@@ -75,26 +82,45 @@ async function goiGemini(env, duKien) {
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: HE_THONG }] },
         contents: [{ role: 'user', parts: [{ text: JSON.stringify(duKien) }] }],
-        generationConfig: { temperature: 0.8, maxOutputTokens: 1024 }
+        generationConfig: { temperature: 0.6, maxOutputTokens: 1024 }
       })
     });
     if (r.status === 404 || r.status === 400) {
       const chu = await r.text();
       // key sai thi model nao cung vay -> dung ngay, bao ro cho nguoi cai dat
       if (/API_KEY_INVALID|API key not valid/i.test(chu)) return { loi: 'GEMINI_API_KEY khong hop le', trangThai: 500 };
-      loiCuoi = `${model}: HTTP ${r.status}`;
+      let chiTiet = '';
+      try {
+        const e = JSON.parse(chu)?.error;
+        chiTiet = [e?.status, e?.message].filter(Boolean).join(' - ').slice(0, 200);
+      } catch {
+        /* khong phai JSON */
+      }
+      // bi chan theo vi tri (may chu Cloudflare o vung Gemini khong ho tro) -> model nao cung vay
+      if (/location/i.test(chiTiet)) return { loi: `Gemini HTTP ${r.status}: ${chiTiet}`, trangThai: 502 };
+      loiCacModel.push(`${model}: HTTP ${r.status}${chiTiet ? ' ' + chiTiet : ''}`);
       continue; // model khong ton tai / da ngung -> thu model tiep theo
     }
-    if (!r.ok) return { loi: `HTTP ${r.status}`, trangThai: r.status === 429 ? 429 : 502 };
+    if (!r.ok) {
+      // tra kem loi goc cua Google (khong chua key) de trang /kiem-tra/ biet vi sao
+      let chiTiet = '';
+      try {
+        const e = (await r.json())?.error;
+        chiTiet = [e?.status, e?.message].filter(Boolean).join(' - ').slice(0, 300);
+      } catch {
+        /* khong phai JSON */
+      }
+      return { loi: `Gemini HTTP ${r.status}${chiTiet ? ': ' + chiTiet : ''}`, trangThai: r.status === 429 ? 429 : 502 };
+    }
     const j = await r.json();
     const text = (j.candidates?.[0]?.content?.parts ?? [])
       .filter((p) => typeof p.text === 'string' && !p.thought)
       .map((p) => p.text)
       .join(' ');
     if (text.trim()) return { loiMeo: lamSach(text), model };
-    loiCuoi = `${model}: khong co chu`;
+    loiCacModel.push(`${model}: khong co chu`);
   }
-  return { loi: loiCuoi, trangThai: 502 };
+  return { loi: loiCacModel.join(' | ').slice(0, 900) || 'khong co model nao dung duoc', trangThai: 502 };
 }
 
 export default {

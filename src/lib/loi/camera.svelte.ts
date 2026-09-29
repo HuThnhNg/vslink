@@ -11,7 +11,7 @@ import { ketQuaTuKhung, khungKichBan } from './gia-lap';
 import { CAT_DOAN } from './hang-so';
 import { napMoHinh } from './mo-hinh';
 import { napHolistic, thoiDiemTang } from './nhan-dang';
-import { veKhungXuong } from './ve';
+import { ButVe, docKieuVe, luuKieuVe, type KieuVe } from './ve';
 
 export type TrangThaiCamera = 'tat' | 'dang-mo' | 'dang-nap' | 'chay' | 'loi';
 
@@ -45,6 +45,9 @@ export class PhienCamera {
 	kichThuoc = $state({ rong: 0, cao: 0 });
 	/** dat true de tam ngung cat doan (vi du: dang xem ket qua) */
 	tamDung = $state(false);
+	/** net ve khop tren camera — chi de nhin, nhan dang van chay ngam */
+	kieuVe = $state<KieuVe>('tay');
+	private but = new ButVe();
 
 	private video: HTMLVideoElement | null = null;
 	private canvas: HTMLCanvasElement | null = null;
@@ -57,6 +60,16 @@ export class PhienCamera {
 	private henVideo = 0;
 
 	constructor(private su: SuKienCamera = {}) {}
+
+	/** Goi trong onMount (trinh duyet): lay lua chon net ve da luu. */
+	napKieuVe() {
+		this.kieuVe = docKieuVe();
+	}
+
+	doiKieuVe(k: KieuVe) {
+		this.kieuVe = k;
+		luuKieuVe(k);
+	}
 
 	get chamCham() {
 		return this.trangThai === 'chay' && this.fps > 0 && this.fps < CAT_DOAN.fpsCanhBao;
@@ -127,6 +140,7 @@ export class PhienCamera {
 		if (this.video) this.video.srcObject = null;
 		if (this.canvas) this.canvas.getContext('2d')?.clearRect(0, 0, this.canvas.width, this.canvas.height);
 		this.tinHieu = null;
+		this.but.datLai();
 		this.pha = 'cho';
 		this.fps = 0;
 		if (this.trangThai !== 'loi') this.trangThai = 'tat';
@@ -187,9 +201,11 @@ export class PhienCamera {
 				this.canvas.height = cao;
 			}
 			const ctx = this.canvas.getContext('2d');
-			if (ctx) veKhungXuong(ctx, kqVe, { dauTron: this.giaLap });
+			// "nguoi que" gia lap chi co tay thi kho hieu -> kieu 'tay' ve ca nguoi
+			const kieu = this.giaLap && this.kieuVe === 'tay' ? 'day-du' : this.kieuVe;
+			if (ctx) this.but.ve(ctx, kqVe, kieu, { dauTron: this.giaLap });
 		}
-		const tinHieu = docTinHieu(kp);
+		const tinHieu = docTinHieu(kp, kqVe);
 		this.tinHieu = tinHieu;
 		if (this.tamDung) return;
 		const sk = this.cat.capNhat({ t, kp, tinHieu });

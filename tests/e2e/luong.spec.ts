@@ -117,3 +117,31 @@ test('camera that tren may cham: khong tai duoc MediaPipe -> bao loi + nut thu l
 	await expect(page.getByText('Không tải được mô hình nhận dạng dáng người')).toBeVisible({ timeout: 60_000 });
 	await expect(page.getByRole('button', { name: 'Thử lại' })).toBeVisible();
 });
+
+test('net ve khop: chon An thi camera sach, chon lai thi ve; nho lua chon', async ({ page }, info) => {
+	const loi = await chuanBi(page);
+	await page.goto('dich/?gia-lap=1');
+	await page.getByRole('button', { name: 'Bật camera' }).click();
+	const nhom = page.getByRole('group', { name: /Nét vẽ khớp/ });
+	await expect(nhom.getByRole('button', { name: 'Tay' })).toHaveAttribute('aria-pressed', 'true');
+	const soDiemVe = () =>
+		page.evaluate(() => {
+			const c = document.querySelector('.o-camera canvas') as HTMLCanvasElement;
+			const d = c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data;
+			let n = 0;
+			for (let i = 3; i < d.length; i += 4) if (d[i] > 0) n++;
+			return n;
+		});
+	await page.waitForTimeout(500);
+	expect(await soDiemVe()).toBeGreaterThan(100);
+	await anh(page, info, 'net-ve-tay', { cuonToi: page.locator('.o-camera') });
+	await nhom.getByRole('button', { name: 'Ẩn' }).click();
+	await page.waitForTimeout(300);
+	expect(await soDiemVe()).toBe(0);
+	await page.reload();
+	await expect(page.getByRole('group', { name: /Nét vẽ khớp/ }).getByRole('button', { name: 'Ẩn' })).toHaveAttribute(
+		'aria-pressed',
+		'true'
+	);
+	expect(loi).toEqual([]);
+});

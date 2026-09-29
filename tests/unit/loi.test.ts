@@ -198,3 +198,24 @@ describe('danh gia', () => {
 		expect(danhGia(probs, 0, nhan, cl).boPhan.tayTrai).toBe('khong-thay');
 	});
 });
+
+import { describe as moTa, expect as mong, it as thu } from 'vitest';
+import { khungGia as gia, ketQuaTuKhung } from './gia-lap';
+import { docTinHieu as doc } from '../../src/lib/loi/diem';
+
+moTa('ngoi sat camera (chi thay mat)', () => {
+	thu('co tay doan bua ma khong thay ban tay -> KHONG tinh la gio tay', () => {
+		const kp = gia({ coTayPhai: [0.4, 0.5], banTay: false });
+		mong(doc(kp).tayNang).toBe(false);
+	});
+	thu('vai nam ngoai hinh / visibility thap -> khong tinh la thay nguoi', () => {
+		const kp = gia({ coTayPhai: [0.4, 0.5] });
+		const kq = ketQuaTuKhung(kp);
+		kq.poseLandmarks![0][11] = { x: 0.6, y: 1.2, visibility: 0.9 };
+		mong(doc(kp, kq).coNguoi).toBe(false);
+		const kq2 = ketQuaTuKhung(kp);
+		kq2.poseLandmarks![0][12] = { x: 0.4, y: 0.45, visibility: 0.2 };
+		mong(doc(kp, kq2).coNguoi).toBe(false);
+		mong(doc(kp, ketQuaTuKhung(kp)).coNguoi).toBe(true);
+	});
+});

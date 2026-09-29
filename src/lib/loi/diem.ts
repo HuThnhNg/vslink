@@ -96,9 +96,26 @@ export type TinHieu = {
 	coTayPhai_xy: [number, number] | null;
 };
 
-/** Tin hieu cho may trang thai. Tat ca chuan hoa theo chinh co the nguoi ky. */
-export function docTinHieu(kp: Khung): TinHieu {
-	const coNguoi = coDiem(kp, VAI_T) && coDiem(kp, VAI_P);
+/**
+ * Hai vai co THAT SU nam trong hinh khong. MediaPipe luon tra du 33 diem than, ke ca
+ * khi nguoi ngoi sat camera (vai, co tay nam ngoai khung -> diem doan bua, visibility
+ * thap). Khong kiem thi "tay dang gio" bat lung tung.
+ */
+export function thayVai(kq: KetQuaHolistic): boolean {
+	const p = kq.poseLandmarks?.[0];
+	if (!p || p.length < 13) return false;
+	return [p[VAI_T], p[VAI_P]].every(
+		(d) => (d.visibility === undefined || d.visibility >= 0.5) && d.y >= 0 && d.y <= 1 && d.x >= 0 && d.x <= 1
+	);
+}
+
+/**
+ * Tin hieu cho may trang thai. Tat ca chuan hoa theo chinh co the nguoi ky.
+ * kq (tuy chon): ket qua MediaPipe goc -> kiem them vai co nam trong hinh.
+ * "Tay nang" chi tinh khi MediaPipe THAY ban tay do (21 diem), khong dua vao co tay doan.
+ */
+export function docTinHieu(kp: Khung, kq?: KetQuaHolistic): TinHieu {
+	const coNguoi = coDiem(kp, VAI_T) && coDiem(kp, VAI_P) && (!kq || thayVai(kq));
 	const coTayTrai = coVung(kp, VUNG.tayTrai);
 	const coTayPhai = coVung(kp, VUNG.tayPhai);
 	if (!coNguoi) {
@@ -117,6 +134,6 @@ export function docTinHieu(kp: Khung): TinHieu {
 	const nguong = vy + duoiVai;
 	const xyT: [number, number] | null = coDiem(kp, CO_TAY_T) ? [kp[CO_TAY_T * 2], kp[CO_TAY_T * 2 + 1]] : null;
 	const xyP: [number, number] | null = coDiem(kp, CO_TAY_P) ? [kp[CO_TAY_P * 2], kp[CO_TAY_P * 2 + 1]] : null;
-	const tayNang = (xyT !== null && xyT[1] < nguong) || (xyP !== null && xyP[1] < nguong);
+	const tayNang = (coTayTrai && xyT !== null && xyT[1] < nguong) || (coTayPhai && xyP !== null && xyP[1] < nguong);
 	return { coNguoi, coTayTrai, coTayPhai, tayNang, beNgangVai: w, coTayTrai_xy: xyT, coTayPhai_xy: xyP };
 }

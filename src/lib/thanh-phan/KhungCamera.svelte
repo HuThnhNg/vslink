@@ -10,6 +10,7 @@
 	import CameraOff from '@lucide/svelte/icons/camera-off';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import { CAT_DOAN } from '$lib/loi/hang-so';
+	import { KIEU_VE } from '$lib/loi/ve';
 
 	let {
 		phien,
@@ -37,13 +38,16 @@
 		'dang-cham': 'Mèo đang đoán…',
 		nghi: 'Xong! Nghỉ chút nha'
 	};
-	const loiPha = $derived(phien.pha === 'cho' ? (th?.coNguoi ? goiY : 'Mèo chưa thấy bạn — lùi lại cho thấy từ đầu đến bụng nhé') : LOI_PHA[phien.pha]);
+	const loiPha = $derived(phien.pha === 'cho' ? (th?.coNguoi ? goiY : 'Ngồi xa camera hơn chút — Mèo cần thấy cả hai vai và hai tay') : LOI_PHA[phien.pha]);
 
 	function bat() {
 		phien.batDau(video, canvas, { giaLap });
 	}
 	// tat camera khi roi trang (onMount khong chay luc dung san trang tren may chu)
-	onMount(() => () => phien.dung());
+	onMount(() => {
+		phien.napKieuVe();
+		return () => phien.dung();
+	});
 </script>
 
 <div class="o-camera" style:aspect-ratio={tiLe} data-pha={phien.pha} data-trang-thai={phien.trangThai}>
@@ -94,6 +98,12 @@
 	<span class:bat={th?.coTayPhai} class="phai"><i></i>Tay phải</span>
 	<span class:bat={th?.tayNang}><i></i>Tay đang giơ</span>
 	{#if dangChay}<span class="fps">{Math.round(phien.fps)} hình/giây</span>{/if}
+</div>
+<div class="kieu-ve" role="group" aria-label="Nét vẽ khớp trên camera (chỉ để nhìn, Mèo vẫn nhận dạng bình thường)">
+	<span>Nét vẽ khớp</span>
+	{#each KIEU_VE as k (k.ma)}
+		<button aria-pressed={phien.kieuVe === k.ma} onclick={() => phien.doiKieuVe(k.ma)}>{k.ten}</button>
+	{/each}
 </div>
 {#if phien.chamCham}
 	<p class="canh-bao">Máy đang chạy hơi chậm (dưới {CAT_DOAN.fpsCanhBao} hình/giây) nên Mèo dễ đoán sai. Thử đóng bớt tab, hoặc dùng mục <strong>Tải video lên</strong>.</p>
@@ -278,6 +288,34 @@
 	.den .fps {
 		margin-left: auto;
 		font-variant-numeric: tabular-nums;
+	}
+	.kieu-ve {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 4px;
+		margin-top: 8px;
+		font-size: 0.8rem;
+		font-weight: 750;
+		color: var(--chu-phu);
+	}
+	.kieu-ve span {
+		margin-right: 4px;
+	}
+	.kieu-ve button {
+		border: 1.5px solid var(--vien);
+		background: var(--the);
+		color: var(--chu-phu);
+		border-radius: 999px;
+		padding: 3px 10px;
+		font-weight: 800;
+		font-size: 0.78rem;
+		cursor: pointer;
+	}
+	.kieu-ve button[aria-pressed='true'] {
+		background: var(--nut);
+		border-color: var(--nut);
+		color: #fff;
 	}
 	.canh-bao {
 		margin-top: 10px;

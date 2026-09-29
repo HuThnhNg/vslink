@@ -14,26 +14,26 @@ function chon<T>(ds: T[], r: () => number): T {
 
 const MO_DAU = {
 	dung: [
-		'Gâu gâu! Đúng rồi — Mèo nhận ra “{tu}” ngay ({p})!',
-		'Chuẩn không cần chỉnh! Đây chính là “{tu}” ({p}) nè.',
-		'Tuyệt quá! Mèo chắc {p} bạn vừa ký “{tu}”.'
+		'Gâu gâu! Đuôi Mèo vẫy tít rồi — đúng “{tu}” luôn ({p})!',
+		'Chuẩn không cần chỉnh! Mèo chắc {p} đây là “{tu}”.',
+		'Tuyệt cú mèo… à nhầm, tuyệt cú cún! “{tu}” chuẩn {p}.'
 	],
 	'gan-dung': [
-		'Gần đúng rồi nè! “{tu}” đang đứng thứ {hang}, Mèo hơi nghiêng về “{doan}”.',
-		'Sắp được rồi! Mèo phân vân giữa “{tu}” (hạng {hang}) và “{doan}”.',
-		'Ồ, suýt nữa! “{tu}” xếp thứ {hang} — Mèo đang đoán “{doan}” trước.'
+		'Suýt trúng rồi! “{tu}” đứng thứ {hang}, Mèo đang tưởng là “{doan}”.',
+		'Gần lắm rồi nè: “{tu}” hạng {hang}, Mèo hơi nghiêng về “{doan}”.',
+		'Mũi Mèo đánh hơi thấy “{tu}” ở hạng {hang}, nhưng “{doan}” đang dẫn trước.'
 	],
 	'chua-dung': [
-		'Hmm, Mèo chưa nhận ra “{tu}” — động tác này giống “{doan}” hơn.',
-		'Chưa giống lắm đâu nha: Mèo đoán ra “{doan}”, còn “{tu}” đứng thứ {hang}/400.',
-		'Mèo nghiêng đầu mất rồi… Mèo thấy giống “{doan}” hơn “{tu}”.'
+		'Hmm, Mèo chưa nhận ra “{tu}” — trông giống “{doan}” hơn.',
+		'Chưa trúng nha: Mèo đoán ra “{doan}”, còn “{tu}” đứng thứ {hang}/400.',
+		'Mèo nghiêng đầu mất rồi… động tác này giống “{doan}” hơn “{tu}”.'
 	]
 } as const;
 
 const KET = {
-	dung: ['Làm thêm từ khác cùng Mèo không?', 'Bạn giỏi ghê, tiếp tục nhé!', 'Ghi điểm cho bạn nè!'],
-	'gan-dung': ['Thử lại một lần nữa là được thôi!', 'Xem lại video mẫu rồi làm lại nha, Mèo đợi.'],
-	'chua-dung': ['Mình xem lại video mẫu chậm một chút rồi thử lại nhé.', 'Không sao đâu, ai mới học cũng vậy mà!']
+	dung: ['Ký thêm từ khác cho Mèo xem nào!', 'Thưởng bạn một cái vẫy đuôi!', 'Cứ thế phát huy nhé!'],
+	'gan-dung': ['Thử lại một lần nữa là trúng thôi!', 'Xem lại video mẫu rồi làm lại nha, Mèo ngồi đợi.'],
+	'chua-dung': ['Xem video mẫu ở tốc độ 0,5× rồi thử lại nhé.', 'Không sao đâu, Mèo cũng từng đuổi nhầm đuôi mình mà!']
 } as const;
 
 function goiYPhan(ten: Phan, d: DanhGiaPhan): string | null {

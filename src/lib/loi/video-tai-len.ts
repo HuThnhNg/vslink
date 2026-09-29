@@ -66,7 +66,7 @@ export async function docVideo(
 			}
 			const kq = may.detectForVideo(nguon, thoiDiemTang()) as unknown as KetQuaHolistic;
 			const kp = khungTuHolistic(kq, rong, cao);
-			khung.push({ t: i / FPS_DOC, kp, tinHieu: docTinHieu(kp) });
+			khung.push({ t: i / FPS_DOC, kp, tinHieu: docTinHieu(kp, kq) });
 			onTienTrinh?.((i + 1) / n);
 		}
 		const [a, b] = catGon(khung);
