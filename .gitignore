@@ -19,3 +19,6 @@ vite.config.ts.timestamp-*
 /nghien-cuu/ghep-cau/du-lieu/ket-qua/
 __pycache__/
 .pytest_cache/
+# Worker chay tai cho: key Gemini nam trong worker/.dev.vars (KHONG dua len git)
+/worker/.dev.vars
+/worker/.wrangler/

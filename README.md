@@ -68,6 +68,20 @@ Mở http://localhost:5173. Camera chỉ chạy ở `localhost` hoặc `https`.
 - Chưa có camera / muốn thử nhanh: thêm `?gia-lap=1`, ví dụ http://localhost:5173/dich/?gia-lap=1 — một "người que" tự ký để chạy thử cả luồng.
 - Lần đầu mở camera, web tải mô hình MediaPipe (hơn 10 MB) và mô hình ký hiệu (14 MB); các lần sau trình duyệt đã lưu sẵn.
 
+### Thử Mèo AI và Ghép câu bằng Gemini ngay trên máy (không cần Cloudflare)
+
+Worker chạy tại chỗ bằng `wrangler dev`, key Gemini chỉ nằm trên máy bạn.
+
+1. Lấy key Gemini tại https://aistudio.google.com/apikey (nên dùng Gmail cá nhân, *Create API key in new project*).
+2. Chép `worker/.dev.vars.example` thành `worker/.dev.vars`, dán key vào dòng `GEMINI_API_KEY=` (tệp này không lên git).
+3. Chép `.env.example` thành `.env.local` (để web biết gọi Worker ở `http://localhost:8787`).
+4. Mở **hai** cửa sổ Terminal trong thư mục dự án:
+   ```bash
+   npm run worker   # cửa sổ 1: Worker tại chỗ (lần đầu tải wrangler, khoảng 1 phút)
+   npm run dev      # cửa sổ 2: web
+   ```
+5. Mở http://localhost:5173/dich/, bật **Ghép câu**, bấm **Bật camera**, ký từng từ (hạ tay giữa các từ). Nghỉ 3 giây là ra câu; dòng chú thích phải ghi *"Mèo ghép bằng AI"*. Kiểm tra nhanh Worker: mở http://localhost:5173/kiem-tra/ → **Hỏi thử Mèo** → thấy *(AI)*.
+
 ## 2. Đưa lên GitHub Pages (miễn phí)
 
 Thư mục này đã là một kho git có sẵn commit đầu tiên.
