@@ -1,6 +1,8 @@
 <!--
 	Thong dich: ky truc tiep truoc camera (tu cat doan) hoac tai video len.
 	Moi xu ly deu tren may nguoi dung: MediaPipe -> 60 khung -> mo hinh ONNX -> top 5.
+	Che do "Ghep cau": gom top-3 cua tung tu thanh day, nghi 3 giay -> Worker/Gemini ghep thanh cau
+	(src/lib/cau/ghep-cau.ts; khong co Worker thi noi tu).
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
@@ -19,6 +21,10 @@
 	import { chayMoHinh } from '$lib/loi/mo-hinh';
 	import { NHAN } from '$lib/loi/tu-vung';
 	import { docVideo, LoiMediaPipe } from '$lib/loi/video-tai-len';
+	import { napCauHinh } from '$lib/meo/hoi-meo';
+	import { ghepCau, themTu, TOI_DA_TU, tuDaDoi, type KetQuaCau, type TuTrongCau } from '$lib/cau/ghep-cau';
+	import Sparkles from '@lucide/svelte/icons/sparkles';
+	import X from '@lucide/svelte/icons/x';
 	import Camera from '@lucide/svelte/icons/camera';
 	import Upload from '@lucide/svelte/icons/upload';
 	import GraduationCap from '@lucide/svelte/icons/graduation-cap';
@@ -34,6 +40,43 @@
 	let loiCham = $state<string | null>(null);
 	let lichSu = $state<{ i: number; tu: string; p: number; id: number }[]>([]);
 
+	// ---- ghep cau --------------------------------------------------------------
+	const CHO_GHEP_MS = 3000; // nghi bao lau sau tu cuoi thi tu ghep cau
+	let cheDoCau = $state(false);
+	let dayCau = $state<TuTrongCau[]>([]);
+	let ketQuaCau = $state<KetQuaCau | null>(null);
+	let dangGhep = $state(false);
+	let henGhep: ReturnType<typeof setTimeout> | undefined;
+	let lanGhep = 0; // bo ket qua cu neu day tu da doi trong luc cho Gemini
+	const doiTu = $derived(ketQuaCau ? tuDaDoi(dayCau, ketQuaCau.chon) : []);
+
+	function huyHen() {
+		if (henGhep) clearTimeout(henGhep);
+		henGhep = undefined;
+	}
+
+	async function ghep() {
+		huyHen();
+		if (!dayCau.length) return;
+		const lan = ++lanGhep;
+		dangGhep = true;
+		try {
+			const { meo_api } = await napCauHinh();
+			const kq = await ghepCau(dayCau, { api: meo_api });
+			if (lan === lanGhep) ketQuaCau = kq;
+		} finally {
+			if (lan === lanGhep) dangGhep = false;
+		}
+	}
+
+	function doiDayCau(moi: TuTrongCau[]) {
+		lanGhep++;
+		dangGhep = false;
+		huyHen();
+		dayCau = moi;
+		ketQuaCau = null;
+	}
+
 	// ---- cham mot doan ky hieu ------------------------------------------------
 	async function cham(khung: KhungVao[], thoiLuong: number, nguon: KetQua['nguon']) {
 		const kp = khung.map((k) => k.kp);
@@ -45,6 +88,10 @@
 			thongBao = null;
 			loiCham = null;
 			lichSu = [{ i: top[0].i, tu: top[0].tu, p: top[0].p, id: Date.now() }, ...lichSu].slice(0, 12);
+			if (cheDoCau) {
+				doiDayCau(themTu(dayCau, top));
+				if (nguon === 'camera') henGhep = setTimeout(ghep, CHO_GHEP_MS);
+			}
 		} catch (e) {
 			console.error(e);
 			loiCham = 'Mèo không chạy được mô hình nhận dạng (có thể do mạng yếu khi tải lần đầu). Tải lại trang rồi thử nhé.';
@@ -54,6 +101,7 @@
 	const phien = new PhienCamera({
 		onBatDau: () => {
 			thongBao = null;
+			huyHen(); // dang ky tu tiep theo -> chua ghep
 		},
 		onDoan: (khung, thoiLuong) => cham(khung, thoiLuong, 'camera'),
 		onBo: (lyDo) => {
@@ -125,6 +173,7 @@
 		if (page.url.searchParams.get('che') === 'video') che = 'video';
 		return () => {
 			if (urlXem) URL.revokeObjectURL(urlXem);
+			huyHen();
 		};
 	});
 </script>
@@ -222,6 +271,58 @@
 		</section>
 
 		<section class="the cot-ket-qua" aria-live="polite" data-testid="ket-qua-dich">
+			<label class="cong-tac">
+				<input type="checkbox" bind:checked={cheDoCau} onchange={() => doiDayCau([])} data-testid="bat-ghep-cau" />
+				<span>
+					<b>Ghép câu</b>
+					<small>Ký từng từ, hạ tay giữa các từ. Nghỉ 3 giây là Mèo ghép thành câu tiếng Việt.</small>
+				</span>
+			</label>
+			{#if cheDoCau}
+				<div class="khung-cau" data-testid="khung-cau">
+					{#if dayCau.length}
+						<ol class="day-cau" aria-label="Các từ đã ký">
+							{#each dayCau as t, k (t.id)}
+								<li class="chip" class:chua-chac={t.ungVien[0].p < DANH_GIA.nguongChuaChac}>
+									<span class="so">{k + 1}</span>
+									{t.ungVien[0].tu}
+									<small>{phanTram(t.ungVien[0].p)}</small>
+									<button
+										class="xoa-tu"
+										onclick={() => doiDayCau(dayCau.filter((x) => x.id !== t.id))}
+										aria-label="Bỏ từ {t.ungVien[0].tu}"><X size={14} /></button
+									>
+								</li>
+							{/each}
+						</ol>
+						{#if dayCau.length >= TOI_DA_TU}<p class="nho">Đủ {TOI_DA_TU} từ rồi — bấm “Dịch thành câu” nhé.</p>{/if}
+					{:else}
+						<p class="nho">Chưa có từ nào. Ký từ đầu tiên đi!</p>
+					{/if}
+					{#if dangGhep}
+						<p class="nho" role="status">Mèo đang ghép câu…</p>
+					{:else if ketQuaCau}
+						<p class="cau-lon" data-testid="cau-ghep">{ketQuaCau.cau}</p>
+						<p class="nho">
+							{ketQuaCau.nguon === 'ai'
+								? 'Mèo ghép bằng AI: đã đổi trật tự ký hiệu sang câu tiếng Việt.'
+								: 'Chưa có AI: Mèo nối các từ theo đúng thứ tự bạn ký.'}
+						</p>
+						{#each doiTu as d (d.thay)}
+							<p class="canh-bao">Mèo chọn “{d.tu}” thay cho “{d.thay}” cho hợp nghĩa.</p>
+						{/each}
+					{/if}
+					<div class="nut-cau">
+						<button class="nut" onclick={ghep} disabled={!dayCau.length || dangGhep} data-testid="dich-thanh-cau">
+							<Sparkles size={18} /> Dịch thành câu
+						</button>
+						<button class="nut vien" onclick={() => doiDayCau([])} disabled={!dayCau.length}>
+							<Trash size={16} /> Làm lại
+						</button>
+					</div>
+				</div>
+			{/if}
+
 			{#if loiCham}
 				<BongMeo tamTrang="boi-roi" cau={loiCham} />
 			{:else if dangCham || dangDoc}
@@ -407,6 +508,62 @@
 	}
 	.buoc b {
 		color: var(--chu);
+	}
+	.khung-cau {
+		display: grid;
+		gap: 10px;
+		padding: 14px;
+		border-radius: var(--bo-vua);
+		background: var(--xanh-nhat);
+		border: 1px solid color-mix(in srgb, var(--xanh) 25%, transparent);
+	}
+	.day-cau {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.day-cau .chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+	}
+	.day-cau .chip.chua-chac {
+		background: var(--vang-nhat);
+	}
+	.day-cau .so {
+		font-size: 0.75rem;
+		font-weight: 850;
+		color: var(--chu-phu);
+	}
+	.xoa-tu {
+		display: inline-grid;
+		place-items: center;
+		width: 22px;
+		height: 22px;
+		margin-right: -4px;
+		border: 0;
+		border-radius: 999px;
+		background: transparent;
+		color: var(--chu-phu);
+		cursor: pointer;
+	}
+	.xoa-tu:hover {
+		background: color-mix(in srgb, var(--chu) 10%, transparent);
+	}
+	.cau-lon {
+		margin: 0;
+		font-size: clamp(1.3rem, 3vw, 1.7rem);
+		font-weight: 900;
+		line-height: 1.25;
+		color: var(--xanh-dam);
+	}
+	.nut-cau {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
 	}
 	.lich-su {
 		border-top: 1px dashed var(--vien);
