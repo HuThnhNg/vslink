@@ -66,30 +66,73 @@ def dau_vao_kiem_tra(che_do: str, tep_du_doan: str | None) -> list[dict]:
 # ---------------------------------------------------------------------------
 # Cac "he" sinh cau
 # ---------------------------------------------------------------------------
+# Thu tu thu khi model yeu cau khong ton tai (giong worker/meo-worker.js). Google doi / ngung model
+# thuong xuyen: xem ai.google.dev/gemini-api/docs/models.
+DS_GEMINI = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-flash-lite-latest",
+             "gemini-3.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-2.5-flash"]
+GOC_GEMINI = "https://generativelanguage.googleapis.com/v1beta/models"
+
+
 class Gemini:
+    """Goi Gemini. Model yeu cau bi 404 (khong ton tai / da ngung) -> tu thu lan luot DS_GEMINI,
+    nho model dung duoc cho cac cau sau. Het cach -> in danh sach model key nay dung duoc."""
+
     def __init__(self, mo_hinh: str):
         import requests
 
-        self.rq, self.mo_hinh = requests, mo_hinh
-        self.key = os.environ["GEMINI_API_KEY"]
+        self.rq = requests
+        self.key = os.environ.get("GEMINI_API_KEY", "").strip()
+        if not self.key:
+            raise SystemExit("Chua co GEMINI_API_KEY. Chay: export GEMINI_API_KEY=\"key cua ban\" (cung cua so Terminal)")
+        self.ds = [mo_hinh] + [m for m in DS_GEMINI if m != mo_hinh]
+        self.dang_dung: str | None = None
+
+    def _liet_ke(self) -> list[str]:
+        try:
+            r = self.rq.get(GOC_GEMINI, headers={"x-goog-api-key": self.key}, timeout=30)
+            return [m["name"].removeprefix("models/") for m in r.json().get("models", [])
+                    if "generateContent" in m.get("supportedGenerationMethods", [])]
+        except Exception:
+            return []
+
+    def _goi(self, mo_hinh: str, body: dict):
+        url = f"{GOC_GEMINI}/{mo_hinh}:generateContent"
+        for lan in range(6):
+            r = self.rq.post(url, json=body, headers={"x-goog-api-key": self.key}, timeout=60)
+            if r.status_code in (429, 500, 503):
+                time.sleep(5 * (lan + 1))
+                continue
+            return r
+        return r
 
     def __call__(self, ms: list[dict]) -> str:
         he = next(m["content"] for m in ms if m["role"] == "system")
         noi_dung = [{"role": "user" if m["role"] == "user" else "model", "parts": [{"text": m["content"]}]}
                     for m in ms if m["role"] != "system"]
         body = {"systemInstruction": {"parts": [{"text": he}]}, "contents": noi_dung,
-                "generationConfig": {"temperature": 0, "maxOutputTokens": 256,
+                "generationConfig": {"temperature": 0, "maxOutputTokens": 1024,
                                      "responseMimeType": "application/json"}}
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.mo_hinh}:generateContent"
-        for lan in range(6):
-            r = self.rq.post(url, json=body, headers={"x-goog-api-key": self.key}, timeout=60)
-            if r.status_code in (429, 500, 503):
-                time.sleep(5 * (lan + 1))
-                continue
-            r.raise_for_status()
-            parts = r.json()["candidates"][0]["content"]["parts"]
-            return "".join(p.get("text", "") for p in parts)
-        raise RuntimeError(f"Gemini loi lien tuc: {r.status_code} {r.text[:200]}")
+        thu = [self.dang_dung] if self.dang_dung else self.ds
+        loi = []
+        for mo_hinh in thu:
+            r = self._goi(mo_hinh, body)
+            if r.status_code == 200:
+                if self.dang_dung != mo_hinh:
+                    print(f"  [Gemini] dang dung model: {mo_hinh}")
+                    self.dang_dung = mo_hinh
+                parts = r.json().get("candidates", [{}])[0].get("content", {}).get("parts", [])
+                return "".join(p.get("text", "") for p in parts if not p.get("thought"))
+            chi_tiet = r.text[:300]
+            if "API_KEY_INVALID" in chi_tiet or "API key not valid" in chi_tiet:
+                raise SystemExit("GEMINI_API_KEY khong hop le — copy lai key tu aistudio.google.com/apikey")
+            if r.status_code in (400, 404) and not self.dang_dung:
+                loi.append(f"{mo_hinh}: HTTP {r.status_code}")
+                continue  # model khong co -> thu model sau
+            raise RuntimeError(f"Gemini HTTP {r.status_code} ({mo_hinh}): {chi_tiet}")
+        co = [m for m in self._liet_ke() if "gemini" in m]
+        raise SystemExit("Khong model nao trong danh sach dung duoc:\n  " + "\n  ".join(loi)
+                         + "\nModel key cua ban dung duoc: " + (", ".join(co) or "(khong lay duoc danh sach)")
+                         + "\nChay lai voi: --he gemini:<ten model o tren>")
 
 
 class OpenAIGiong:
