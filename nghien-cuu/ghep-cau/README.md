@@ -76,18 +76,27 @@ Mọi kết quả cộng dồn vào `du-lieu/ket-qua/tong-ket.md`. Mỗi `*.json
 - **F1 từ**: F1 giữa các nhãn đọc lại từ câu dự đoán và gloss đúng. Chỉ số này cho biết hệ có **chọn đúng từ và không bịa từ** hay không, không phụ thuộc cách diễn đạt.
 - Hai chế độ đầu vào: `--dau-vao sach` (chỉ gloss đúng, đo khả năng sắp xếp) và `--dau-vao nhieu` (top-3 có nhiễu, đo thêm khả năng sửa lỗi nhận dạng).
 
-## Kết quả hiện có (mốc không dùng LLM, nhiễu giả lập)
+## Kết quả hiện có (nhiễu giả lập, 101 câu, 1/10/2026)
 
-| Hệ | Đầu vào | chrF++ | BLEU | Khớp % | F1 từ |
-| --- | --- | --- | --- | --- | --- |
-| Mức 0 nối thô | sạch | 65,76 | 37,69 | 18,8 | 100,0 |
-| Mức 0 nối thô | nhiễu | 56,86 | 28,23 | 12,9 | 88,6 |
-| Mức 0+ quy tắc | sạch | 93,03 | 90,85 | 84,2 | 100,0 |
-| Mức 0+ quy tắc | nhiễu | 78,31 | 70,77 | 55,4 | 88,6 |
+Gemini 3.1 Flash-Lite, `temperature = 0`. Kiểm định bootstrap ghép cặp 1.000 lần so với hệ quy tắc (`phan_tich_loi.py`).
 
-Cách đọc:
-- Nhiễu nhận dạng làm mất khoảng 15 điểm chrF++ và 11 điểm F1 từ. **Đó là phần LLM cần lấy lại.**
-- **Cẩn thận:** mốc quy tắc rất cao trên đầu vào sạch vì gloss của tập kiểm tra *cũng được sinh bằng chính quy tắc đó*. Mốc này chỉ công bằng sau khi người biết NNKH duyệt lại gloss. Ngay cả bây giờ, quy tắc đã hỏng ở các dạng ngoài khuôn: chủ ngữ ghép đạt chrF++ 44,7, hai động từ đạt 52,3.
+| Hệ | chrF++ | BLEU | Khớp % | F1 từ | so với quy tắc | p |
+| --- | --- | --- | --- | --- | --- | --- |
+| Mức 0 nối thô | 56,86 | 28,23 | 12,9 | 88,6 | −21,44 | |
+| Mức 0+ quy tắc | 78,31 | 70,77 | 55,4 | 88,6 | mốc | |
+| Gemini zero-shot | 78,34 | 70,21 | 52,5 | 88,9 | +0,03 | 0,48 |
+| Gemini + quy tắc | 82,74 | 75,49 | 58,4 | 90,2 | +4,43 | 0,001 |
+| Gemini + 8 ví dụ | 82,26 | 74,03 | 56,4 | 89,8 | +3,95 | 0,023 |
+| **Gemini + quy tắc + ví dụ** | **83,79** | **76,46** | **62,4** | **90,7** | **+5,48** | **0,001** |
+
+- Ba cấu hình có hướng dẫn đều hơn quy tắc **có ý nghĩa thống kê**; zero-shot thì không.
+- Giữa các cấu hình có hướng dẫn với nhau, chênh lệch **chưa có ý nghĩa** (quy tắc+ví dụ so với quy tắc: p = 0,25; so với ví dụ: p = 0,05). Cần tập kiểm tra lớn hơn.
+- **Sửa lỗi nhận dạng**: 25 vị trí top-1 sai mà từ đúng có trong top-3. Cấu hình tốt nhất sửa đúng 8, giữ sai 16, chọn từ sai khác 1. 11 vị trí sai ngoài top-3 thì không thể sửa từ ứng viên. Đổi nhầm 2/265 vị trí top-1 vốn đúng. Không câu nào bịa nhãn ngoài ứng viên.
+- Lợi rõ nhất ở dạng câu lạ: chủ ngữ ghép 44,7 → 84,2; hai động từ 52,3 → 69,6; câu tình thái 76,6 → 88,3.
+- Lỗi nguy hiểm: #29 ứng viên phủ định "Sai / Không cần / Nên", Gemini chọn "Nên" → "Em nên ăn kẹo." (đảo nghĩa câu gốc "không cần").
+- Một phần điểm thấp ở dạng tính từ do đáp án có hư từ không ký được ("rất", "ngon" thay vì "ngon miệng") → người duyệt nên sửa đáp án.
+
+**Cẩn thận:** gloss của tập kiểm tra sinh bằng chính quy tắc trong prompt, nên điều kiện "quy tắc" đang được lợi; chỉ kết luận chắc sau khi người biết NNKH duyệt gloss.
 
 ## Giới hạn
 
