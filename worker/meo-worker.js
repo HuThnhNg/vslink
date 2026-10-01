@@ -72,7 +72,8 @@ function lamSach(s) {
   return s.replace(/[*#_`>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 1200);
 }
 
-async function goiGemini(env, duKien) {
+// Goi Gemini, tu thu lan luot cac model. Dung chung cho Meo va cho ghep cau.
+async function goiGemini(env, { heThong, noiDung, cauHinh }) {
   const ds = env.GEMINI_MODEL ? [env.GEMINI_MODEL, ...DS_MODEL.filter((m) => m !== env.GEMINI_MODEL)] : DS_MODEL;
   const loiCacModel = [];
   for (const model of ds) {
@@ -80,9 +81,9 @@ async function goiGemini(env, duKien) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY },
       body: JSON.stringify({
-        systemInstruction: { parts: [{ text: HE_THONG }] },
-        contents: [{ role: 'user', parts: [{ text: JSON.stringify(duKien) }] }],
-        generationConfig: { temperature: 0.6, maxOutputTokens: 1024 }
+        systemInstruction: { parts: [{ text: heThong }] },
+        contents: [{ role: 'user', parts: [{ text: noiDung }] }],
+        generationConfig: cauHinh
       })
     });
     if (r.status === 404 || r.status === 400) {
@@ -117,10 +118,96 @@ async function goiGemini(env, duKien) {
       .filter((p) => typeof p.text === 'string' && !p.thought)
       .map((p) => p.text)
       .join(' ');
-    if (text.trim()) return { loiMeo: lamSach(text), model };
+    if (text.trim()) return { text, model };
     loiCacModel.push(`${model}: khong co chu`);
   }
   return { loi: loiCacModel.join(' | ').slice(0, 900) || 'khong co model nao dung duoc', trangThai: 502 };
+}
+
+// =============================================================================
+// Ghep cau: nguoi ky tung tu (ha tay giua cac tu) -> web gui top-3 ung vien cua moi tu
+// -> Gemini chon tu hop ngu canh + dao trat tu NNKH sang tieng Viet. Chi nhan TU trong 400
+// nhan va xac suat; khong nhan hinh hay toa do. Prompt giong nghien-cuu/ghep-cau/prompt.py
+// (dieu kien "quy-tac+few"); quy tac theo luan an Nguyen Thi Bich Diep 2023 (Bang 3.3-3.8).
+// =============================================================================
+const HE_THONG_CAU = `Bạn là bộ dịch từ chuỗi ký hiệu (gloss) Ngôn ngữ Ký hiệu Việt Nam (NNKH) sang MỘT câu tiếng Việt tự nhiên.
+
+ĐẦU VÀO: các vị trí đánh số theo ĐÚNG THỨ TỰ người ký. Mỗi vị trí có tối đa 3 ứng viên do mô hình nhận dạng đưa ra, dạng "từ xác_suất", xếp từ chắc nhất đến kém chắc nhất. Ứng viên đầu thường đúng nhưng có thể sai.
+
+CÁCH LÀM:
+- Ở mỗi vị trí chọn MỘT ứng viên sao cho cả câu hợp nghĩa nhất. Chỉ bỏ ứng viên đầu khi nó làm câu vô nghĩa và ứng viên khác có xác suất không quá thấp. Có thể bỏ hẳn một vị trí nếu mọi ứng viên đều không hợp (máy cắt nhầm một đoạn).
+- Được thêm hư từ tối thiểu để câu tự nhiên (là, ở, rất, trời, cho, và…). Bỏ phần chú thích trong ngoặc: "Cao (người)" -> "cao".
+- KHÔNG thêm người, vật, hành động hay ý nào không có trong ứng viên.
+
+QUY TẮC NGỮ PHÁP (theo Nguyễn Thị Bích Điệp 2023 — luận án dịch NNKH, dữ liệu Vie-VSL10k do chuyên gia ngôn ngữ duyệt; và Hoa Nguyen 2026 về NNKH TP.HCM. Đây là xu hướng, không phải luật tuyệt đối; luôn ưu tiên nghĩa hợp lý):
+1. NNKH GIẢN LƯỢC: không có ký hiệu cho giới từ, liên từ, phụ từ (đã, sẽ, đang, rất, là…), tiểu từ và từ cảm thán. Khi dịch sang tiếng Việt được thêm lại tối thiểu cho câu tự nhiên. Ví dụ: Áo | Anh | Màu xanh -> "Áo của anh màu xanh."; Tôi | Anh | Đi | Học -> "Tôi và anh đi học."
+2. Câu đơn: NNKH là Chủ ngữ + Bổ ngữ + Động từ (SOV); tiếng Việt là Chủ ngữ + Động từ + Bổ ngữ (SVO). Nơi chốn, phương tiện cũng đứng trước động từ. Ví dụ: Mẹ | Phở | Nấu -> "Mẹ nấu phở."; Bố | Công ty | Làm việc -> "Bố làm việc ở công ty."
+3. Phủ định: từ phủ định đứng SAU động từ và ở CUỐI câu trong NNKH; tiếng Việt đặt TRƯỚC động từ. Ví dụ: Anh | Rượu | Uống | Không nên -> "Anh không nên uống rượu."
+4. Từ tình thái (muốn, cần, thích, nên) nếu được ký thường đứng sau động từ; nhưng NNKH hay lược bỏ hẳn chúng — KHÔNG tự thêm tình thái khi không có trong ứng viên. Ví dụ: Em | Công viên | Đi | Muốn -> "Em muốn đi công viên."
+5. Câu hỏi: từ để hỏi luôn đứng CUỐI câu trong NNKH. Ví dụ: Táo | Ăn | Ai -> "Ai ăn táo?"; Cường | Táo | Ăn | Mấy -> "Cường ăn mấy quả táo?"
+6. Số đếm đứng SAU danh từ trong NNKH: Táo | Hai -> "hai quả táo".
+7. Thông tin được nhấn mạnh (thời gian, chủ đề) thường đưa lên đầu; giữ ở đầu câu tiếng Việt. Câu tính từ, câu "là", câu thời tiết giữ nguyên trật tự: Khế | Chua -> "Khế chua."; Bố | Bác sĩ -> "Bố là bác sĩ."; Mùa đông | Lạnh -> "Mùa đông trời lạnh."
+
+VÍ DỤ:
+1. Mẹ 0.82 | Con mèo 0.05 | Mập 0.03
+2. Phở 0.55 | Bún 0.30 | Xôi 0.05
+3. Nấu 0.41 | Nướng 0.38 | Ăn 0.10
+-> {"chon": ["Mẹ", "Phở", "Nấu"], "cau": "Mẹ nấu phở."}
+
+1. Anh 0.90 | Em 0.04 | Chị 0.02
+2. Rượu 0.71 | Bia 0.20 | Nước 0.03
+3. Uống 0.88 | Ăn 0.05 | Nếm 0.02
+4. Không nên 0.66 | Không cần 0.21 | Nên 0.05
+-> {"chon": ["Anh", "Rượu", "Uống", "Không nên"], "cau": "Anh không nên uống rượu."}
+
+1. Bây giờ 0.93 | Buổi tối 0.03 | Giờ 0.01
+2. Bố 0.77 | Chú 0.12 | Bác 0.04
+3. Công ty 0.48 | Ngân hàng 0.31 | Nhà 0.08
+4. Làm việc 0.85 | Học 0.06 | Viết 0.03
+-> {"chon": ["Bây giờ", "Bố", "Công ty", "Làm việc"], "cau": "Bây giờ bố làm việc ở công ty."}
+
+1. Mùa đông 0.62 | Mùa thu 0.25 | Mùa xuân 0.06
+2. Lạnh 0.91 | Mát mẻ 0.04 | Ấm 0.02
+-> {"chon": ["Mùa đông", "Lạnh"], "cau": "Mùa đông trời lạnh."}
+
+1. Em 0.88 | Chị 0.05 | Cháu 0.03
+2. Công viên 0.67 | Trường học 0.12 | Chợ 0.09
+3. Đi 0.94 | Chạy 0.03 | Dừng lại 0.01
+4. Muốn 0.52 | Thích 0.35 | Cần 0.07
+-> {"chon": ["Em", "Công viên", "Đi", "Muốn"], "cau": "Em muốn đi công viên."}
+
+ĐẦU RA: CHỈ một JSON trên một dòng, không markdown:
+{"chon": ["từ đã chọn ở từng vị trí, theo thứ tự ký"], "cau": "câu tiếng Việt"}`;
+
+function kiemCau(d) {
+  if (!d || !Array.isArray(d.vi_tri) || d.vi_tri.length < 1 || d.vi_tri.length > 12) return null;
+  const viTri = d.vi_tri.map((uv) =>
+    Array.isArray(uv)
+      ? uv.slice(0, 3).map((u) => ({ tu: typeof u?.tu === 'string' && NHAN.has(u.tu) ? u.tu : null, p: so(u?.p, 0, 1) }))
+      : null
+  );
+  if (viTri.some((uv) => !uv || !uv.length || uv.some((u) => !u.tu || u.p === null))) return null;
+  return viTri;
+}
+
+function dinhDangCau(viTri) {
+  return viTri.map((uv, i) => `${i + 1}. ` + uv.map((u) => `${u.tu} ${u.p.toFixed(2)}`).join(' | ')).join('\n');
+}
+
+function docCau(text, viTri) {
+  const m = String(text).match(/\{[\s\S]*\}/);
+  if (!m) return null;
+  let j;
+  try {
+    j = JSON.parse(m[0]);
+  } catch {
+    return null;
+  }
+  if (typeof j?.cau !== 'string' || !j.cau.trim()) return null;
+  // chi giu tu thuc su nam trong ung vien (khong cho mo hinh "bia" nhan)
+  const coTrongUngVien = new Set(viTri.flat().map((u) => u.tu));
+  const chon = Array.isArray(j.chon) ? j.chon.filter((t) => typeof t === 'string' && coTrongUngVien.has(t)).slice(0, 12) : [];
+  return { cau: lamSach(j.cau).slice(0, 300), chon };
 }
 
 export default {
@@ -145,15 +232,42 @@ export default {
     if (!env.GEMINI_API_KEY) return tra({ loi: 'Worker chua co GEMINI_API_KEY' }, 500);
     const than = await req.text();
     if (than.length > 4000) return tra({ loi: 'du lieu qua lon' }, 413);
+    let yeuCau;
+    try {
+      yeuCau = JSON.parse(than);
+    } catch {
+      yeuCau = null;
+    }
+
+    // ---- Ghep cau: day top-3 cua tung tu -> mot cau tieng Viet ----
+    if (yeuCau?.loai === 'cau') {
+      const viTri = kiemCau(yeuCau);
+      if (!viTri) return tra({ loi: 'day tu khong hop le' }, 400);
+      const kq = await goiGemini(env, {
+        heThong: HE_THONG_CAU,
+        noiDung: dinhDangCau(viTri),
+        cauHinh: { temperature: 0, maxOutputTokens: 1024, responseMimeType: 'application/json' }
+      });
+      if (kq.loi) return tra({ loi: kq.loi }, kq.trangThai);
+      const cau = docCau(kq.text, viTri);
+      if (!cau) return tra({ loi: 'Gemini tra loi khong dung dinh dang' }, 502);
+      return tra({ ...cau, model: kq.model });
+    }
+
+    // ---- Meo nhan xet mot lan ky ----
     let duKien;
     try {
-      duKien = kiemDuKien(JSON.parse(than).du_kien);
+      duKien = kiemDuKien(yeuCau?.du_kien);
     } catch {
       duKien = null;
     }
     if (!duKien) return tra({ loi: 'du kien khong hop le' }, 400);
-    const kq = await goiGemini(env, duKien);
+    const kq = await goiGemini(env, {
+      heThong: HE_THONG,
+      noiDung: JSON.stringify(duKien),
+      cauHinh: { temperature: 0.6, maxOutputTokens: 1024 }
+    });
     if (kq.loi) return tra({ loi: kq.loi }, kq.trangThai);
-    return tra({ loi_meo: kq.loiMeo, model: kq.model });
+    return tra({ loi_meo: lamSach(kq.text), model: kq.model });
   }
 };
