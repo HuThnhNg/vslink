@@ -1,0 +1,5 @@
+# Chep tep nay thanh worker/.dev.vars roi dan key Gemini vao. Tep .dev.vars KHONG len git.
+# Dung cho: npm run worker  (Worker chay tai cho o http://localhost:8787)
+GEMINI_API_KEY=dan-key-cua-ban-vao-day
+ALLOWED_ORIGINS=http://localhost:5173
+# GEMINI_MODEL=gemini-3.1-flash-lite

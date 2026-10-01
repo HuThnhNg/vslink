@@ -14,3 +14,11 @@ vite.config.ts.timestamp-*
 /test-results
 /playwright-report
 /anh-chup/
+# nghien cuu ghep cau: du lieu sinh / ket qua chay (tao lai duoc)
+/nghien-cuu/ghep-cau/du-lieu/sinh/
+/nghien-cuu/ghep-cau/du-lieu/ket-qua/
+__pycache__/
+.pytest_cache/
+# Worker chay tai cho: key Gemini nam trong worker/.dev.vars (KHONG dua len git)
+/worker/.dev.vars
+/worker/.wrangler/

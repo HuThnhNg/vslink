@@ -11,7 +11,13 @@ let cauHinhHua: Promise<CauHinh> | null = null;
 export function napCauHinh(): Promise<CauHinh> {
 	cauHinhHua ??= fetch(DUONG_DAN.cauHinh, { cache: 'no-cache' })
 		.then((r) => (r.ok ? r.json() : {}))
-		.catch(() => ({}));
+		.catch(() => ({}))
+		.then((c: CauHinh) => {
+			// Chi khi chay tren may (npm run dev): Worker chay tai cho (npm run worker), dia chi
+			// ghi trong .env.local -> VITE_MEO_API=http://localhost:8787. Ban build that bo qua.
+			const tamTai = import.meta.env.DEV ? (import.meta.env.VITE_MEO_API as string | undefined) : undefined;
+			return c.meo_api ? c : { ...c, meo_api: tamTai || c.meo_api };
+		});
 	return cauHinhHua;
 }
 

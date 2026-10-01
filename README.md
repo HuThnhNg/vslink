@@ -17,6 +17,7 @@ Web nhận dạng **400 từ** Ngôn ngữ Ký hiệu Việt Nam qua camera, ch�
 | Mục | Làm được gì |
 | --- | --- |
 | **Dịch** | Ký trước camera — web **tự biết lúc bắt đầu và kết thúc** (giơ tay lên → ký → hạ tay), không cần bấm nút. Hiện từ đoán ngay trên khung camera, 5 khả năng kèm %, cảnh báo "chưa chắc" khi xác suất thấp, lý do khi không chấm (ký quá ngắn, gần như đứng yên…). Có thể **tải video lên** (kể cả video quay kiểu soi gương). |
+| **Ghép câu** (thử nghiệm) | Bật công tắc *Ghép câu* trên trang Dịch, ký từng từ (hạ tay giữa các từ): Mèo gom top-3 của mỗi từ rồi nhờ Gemini (qua Worker) **chọn từ hợp ngữ cảnh và đổi trật tự ký hiệu (Chủ – Tân – Động) sang câu tiếng Việt**. Không có Worker thì nối từ theo thứ tự ký. Nghiên cứu, dữ liệu và notebook: [`nghien-cuu/ghep-cau/`](nghien-cuu/ghep-cau/README.md). |
 | **Học** | Thư viện 400 từ, 19 chủ đề, tìm **không dấu**. Mỗi từ: video mẫu (chỉnh tốc độ 0,5×/0,75×, bật soi gương) + camera. Mỗi lần ký được chấm **Đúng / Gần đúng / Chưa đúng**, chỉ ra **bàn tay nào, đoạn nào khác mẫu**, rồi Mèo nhận xét. |
 | **Đố vui** | *Xem ký hiệu — đoán nghĩa* (4 đáp án cùng chủ đề) và *Thấy chữ — tự ký* (mô hình chấm). |
 | **Tiến độ** | Chuỗi ngày học, số từ đã thuộc, lịch 4 tuần, **ôn tập giãn cách** (hộp Leitner: hẹn ôn sau 1, 2, 4, 7, 15 ngày), tiến độ theo chủ đề. Lưu trên trình duyệt, không cần tài khoản. |
@@ -66,6 +67,20 @@ Mở http://localhost:5173. Camera chỉ chạy ở `localhost` hoặc `https`.
 
 - Chưa có camera / muốn thử nhanh: thêm `?gia-lap=1`, ví dụ http://localhost:5173/dich/?gia-lap=1 — một "người que" tự ký để chạy thử cả luồng.
 - Lần đầu mở camera, web tải mô hình MediaPipe (hơn 10 MB) và mô hình ký hiệu (14 MB); các lần sau trình duyệt đã lưu sẵn.
+
+### Thử Mèo AI và Ghép câu bằng Gemini ngay trên máy (không cần Cloudflare)
+
+Worker chạy tại chỗ bằng `wrangler dev`, key Gemini chỉ nằm trên máy bạn.
+
+1. Lấy key Gemini tại https://aistudio.google.com/apikey (nên dùng Gmail cá nhân, *Create API key in new project*).
+2. Chép `worker/.dev.vars.example` thành `worker/.dev.vars`, dán key vào dòng `GEMINI_API_KEY=` (tệp này không lên git).
+3. Chép `.env.example` thành `.env.local` (để web biết gọi Worker ở `http://localhost:8787`).
+4. Mở **hai** cửa sổ Terminal trong thư mục dự án:
+   ```bash
+   npm run worker   # cửa sổ 1: Worker tại chỗ (lần đầu tải wrangler, khoảng 1 phút)
+   npm run dev      # cửa sổ 2: web
+   ```
+5. Mở http://localhost:5173/dich/, bật **Ghép câu**, bấm **Bật camera**, ký từng từ (hạ tay giữa các từ). Nghỉ 3 giây là ra câu; dòng chú thích phải ghi *"Mèo ghép bằng AI"*. Kiểm tra nhanh Worker: mở http://localhost:5173/kiem-tra/ → **Hỏi thử Mèo** → thấy *(AI)*.
 
 ## 2. Đưa lên GitHub Pages (miễn phí)
 
@@ -133,7 +148,7 @@ Web chỉ dùng video đã chấm / duyệt: từ chưa có video hiện thông 
 ## Giới hạn đã biết
 
 - Chưa kiểm được trên máy thật trong lúc làm: **MediaPipe nhận dạng từ camera thật** và **gọi Gemini thật** (môi trường làm không tải được mô hình của Google). Hãy mở `/kiem-tra/` trên máy bạn: bước 2 (camera + MediaPipe) và bước 3 (Mèo AI).
-- Chỉ 400 từ đơn, ký từng từ một (không dịch câu).
+- Chỉ 400 từ đơn, ký từng từ một. *Ghép câu* là thử nghiệm: vẫn phải hạ tay giữa các từ, và câu ghép được còn đơn giản vì bộ từ thiếu đại từ, từ hỏi.
 - MediaPipe Holistic tính cả lưới khuôn mặt nên máy yếu có thể dưới 6 hình/giây — web sẽ cảnh báo; khi đó dùng *Tải video lên* (đọc từng hình, không phụ thuộc tốc độ máy).
 - Video HEVC của một số điện thoại có thể không mở được trên Chrome/Edge — quay lại ở định dạng H.264 hoặc WebM.
 - Video mẫu phát trực tiếp từ QIPEDC; nếu trang đó chặn, web hiện nút mở video ở tab mới. Độ giống giữa video QIPEDC và cách ký VSL400 là do mô hình chấm — từ bị gắn cờ vẫn cần người xem lại.
@@ -154,7 +169,9 @@ src/lib/du-lieu/    nhan.json (400 nhãn đúng thứ tự mô hình), tu-vung.j
 static/du-lieu/     video-mau.json (video mẫu đã chấm / duyệt — tạo bằng công cụ ở mục 5)
 static/cong-cu/     lenh-qipedc.js (đoạn lệnh dán vào Console của QIPEDC)
 static/models/      vsl400.onnx (đầu vào [B, 60, 75, 2] toạ độ thô → xác suất [B, 400])
-worker/             Cloudflare Worker của Mèo
+src/lib/cau/        ghép câu: gom dãy top-3, gọi Worker, dự phòng nối từ
+nghien-cuu/ghep-cau/ nghiên cứu gloss → câu: quy tắc NNKH, sinh dữ liệu, đánh giá, notebook Kaggle
+worker/             Cloudflare Worker của Mèo (nhận xét + ghép câu)
 scripts/            chép wasm, tải mô hình MediaPipe, tạo dữ liệu từ vựng / vector kiểm tra
 ```
 
