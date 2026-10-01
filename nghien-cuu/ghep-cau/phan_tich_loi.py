@@ -95,7 +95,13 @@ def main() -> None:
     dv = doc(a.dau_vao)
     ids = sorted(tap)
     tc = [tap[i]["cau"] for i in ids]
-    he = {Path(t).stem: doc(t) for t in a.tep}
+    he = {}
+    for t in a.tep:
+        kq = doc(t)
+        if len(kq) < len(tap):  # tep rong / chay do dang -> bo qua
+            print(f"(bo qua {Path(t).name}: chi co {len(kq)}/{len(tap)} cau)")
+            continue
+        he[Path(t).stem] = kq
     du_doan = {k: [v[i]["cau_du_doan"] for i in ids] for k, v in he.items()}
     moc = next((k for k in he if a.moc in k), None)
 
