@@ -23,6 +23,7 @@ import argparse
 import json
 import os
 import random
+import re
 import time
 from pathlib import Path
 
@@ -203,8 +204,11 @@ def tao_he(spec: str, a) -> object:
     if loai == "gemini":
         return Gemini(con_lai or "gemini-3.1-flash-lite")
     if loai == "openai":
-        goc, _, mo_hinh = con_lai.rpartition(":")
-        return OpenAIGiong(goc, mo_hinh)
+        # ten model co the chua ":" (vd Ollama "qwen2.5:7b") -> tach o dau ":" ngay sau duong dan /v1
+        m = re.match(r"^(https?://[^\s]*?/v\d+):(.+)$", con_lai)
+        if not m:
+            raise SystemExit("Dang dung: openai:<goc>/v1:<model>, vd openai:http://localhost:11434/v1:qwen2.5:7b")
+        return OpenAIGiong(m.group(1), m.group(2))
     if loai == "hf":
         return HF(con_lai, a.bon_bit, a.adapter)
     if loai == "t5":
