@@ -18,7 +18,8 @@
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"test": "vitest run",
-		"test:e2e": "playwright test"
+		"test:e2e": "playwright test",
+		"worker": "cd worker && npx --yes wrangler@4 dev --port 8787"
 	},
 	"devDependencies": {
 		"@playwright/test": "1.63.0",
