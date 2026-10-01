@@ -25,6 +25,7 @@ Top-3:     Mẹ .82  Phở .55  Nướng .41   ← mô hình phân vân
 | Ví dụ mẫu được truy xuất + quy tắc, ít dữ liệu | **AulSign** — Bulla và cs., ECAI 2025 ([arXiv 2508.18183](https://arxiv.org/abs/2508.18183)) | `--truy-xuat` |
 | Sinh dữ liệu gloss–câu từ câu thường bằng quy tắc | Moryossef, Yin, Neubig, Goldberg, AT4SSL 2021 ([arXiv 2105.07476](https://arxiv.org/abs/2105.07476)) | `sinh_cau.py`, `quy_tac.py` |
 | Fine-tune nhẹ bằng LoRA cho gloss→text | **Gloss2Text** — Fayyazsanavi và cs., EMNLP Findings 2024 ([arXiv 2407.01394](https://arxiv.org/abs/2407.01394)) | Mức 2 (QLoRA) |
+| **Quy tắc ngữ pháp NNKH** (giản lược hư từ; SOV; phủ định sau động từ, cuối câu; từ hỏi cuối câu; số sau danh từ; tình thái thường bị lược) và tập Vie-VSL10k (10.000 cặp câu do chuyên gia ngôn ngữ duyệt) | Nguyễn Thị Bích Điệp, luận án TS Khoa học máy tính, Học viện KH&CN, 2023 (Quy tắc 1–5, Bảng 3.3–3.8) | Quy tắc trong prompt, `quy_tac.py` |
 | Trật tự NNKH TP.HCM: SOV, phủ định/tình thái sau động từ, từ hỏi cuối câu | Hoa Nguyen, IntechOpen 2026; lưu ý của J. Woodward (2011) về nhiều trật tự được phép | Quy tắc trong prompt |
 | Hạn chế của gloss, cách đánh giá | Müller và cs., ACL 2023 ([ACL Anthology](https://aclanthology.org/2023.acl-short.60)) | Phần "Giới hạn" |
 

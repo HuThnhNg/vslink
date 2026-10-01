@@ -4,8 +4,9 @@ Hai chieu:
   cau_sang_gloss("Em muốn đi công viên.")  -> ["Em", "Công viên", "Đi", "Muốn"]
   gloss_sang_cau(["Em", "Công viên", "Đi", "Muốn"]) -> "Em muốn đi công viên."
 
-Quy tac trat tu (xu huong cua NNKH, theo Hoa Nguyen 2026 ve NNKH TP.HCM; Woodward 2011 luu y
-NNKH Viet Nam con cho phep trat tu khac):
+Quy tac trat tu — doi chieu voi luan an Nguyen Thi Bich Diep (2023), Quy tac 2, 3, 5 (Bang 3.5,
+3.6, 3.8) va Bang 3.3 (tu bi rut gon); Hoa Nguyen 2026 ve NNKH TP.HCM; Woodward 2011 luu y NNKH
+Viet Nam con cho phep trat tu khac:
   1. Tieng Viet  : [thoi gian] Chu ngu [tinh thai] Dong tu [Tan ngu / Noi chon]
      NNKH (gloss): [thoi gian] Chu ngu [Tan ngu / Noi chon] Dong tu [tinh thai]
   2. Phu dinh / tinh thai (muon, can, nen, khong nen...) dung SAU dong tu trong NNKH.
@@ -28,6 +29,10 @@ HU_TU = {
     "thì", "mà", "nhé", "ạ", "cũng", "hay", "này", "đó", "kia", "một", "những", "các", "cái",
     "con", "quả", "trái", "xe", "màu", "người", "chiếc", "bị", "được", "đến", "tới", "lúc",
     "hôm", "nay", "nhiều", "ít", "hơn", "nhất", "chơi", "để", "đi_làm",
+    # Bang 3.3 luan an Nguyen Thi Bich Diep 2023: phu tu, tieu tu tinh thai, cam than, tro tu
+    "vừa", "từng", "xong", "rồi", "hơi", "khí", "à", "á", "nhỉ", "chứ", "vậy", "hả", "hử",
+    "ơi", "dạ", "thưa", "cả", "chính", "đích", "chỉ", "tận", "ngay", "phải", "bị", "tại",
+    "bởi", "vì", "tuy", "nếu", "dù",
 }
 
 _BIET_DANH: dict[str, str] = {}

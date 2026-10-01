@@ -128,7 +128,7 @@ async function goiGemini(env, { heThong, noiDung, cauHinh }) {
 // Ghep cau: nguoi ky tung tu (ha tay giua cac tu) -> web gui top-3 ung vien cua moi tu
 // -> Gemini chon tu hop ngu canh + dao trat tu NNKH sang tieng Viet. Chi nhan TU trong 400
 // nhan va xac suat; khong nhan hinh hay toa do. Prompt giong nghien-cuu/ghep-cau/prompt.py
-// (dieu kien "quy-tac+few").
+// (dieu kien "quy-tac+few"); quy tac theo luan an Nguyen Thi Bich Diep 2023 (Bang 3.3-3.8).
 // =============================================================================
 const HE_THONG_CAU = `Bạn là bộ dịch từ chuỗi ký hiệu (gloss) Ngôn ngữ Ký hiệu Việt Nam (NNKH) sang MỘT câu tiếng Việt tự nhiên.
 
@@ -139,12 +139,14 @@ CÁCH LÀM:
 - Được thêm hư từ tối thiểu để câu tự nhiên (là, ở, rất, trời, cho, và…). Bỏ phần chú thích trong ngoặc: "Cao (người)" -> "cao".
 - KHÔNG thêm người, vật, hành động hay ý nào không có trong ứng viên.
 
-QUY TẮC NGỮ PHÁP (NNKH thường khác tiếng Việt — đây là xu hướng, không phải luật tuyệt đối; luôn ưu tiên nghĩa hợp lý):
-1. NNKH thường theo trật tự Chủ ngữ + Tân ngữ + Động từ (SOV); tiếng Việt là Chủ ngữ + Động từ + Tân ngữ (SVO).
-2. Nơi chốn và phương tiện cũng thường đứng TRƯỚC động từ trong NNKH.
-3. Từ tình thái và phủ định (muốn, cần, thích, nên, không nên, không cần) thường đứng SAU động từ trong NNKH; tiếng Việt đặt TRƯỚC.
-4. Từ chỉ thời gian thường đứng đầu; giữ ở đầu câu tiếng Việt.
-5. Tính từ làm vị ngữ, câu thời tiết và câu "là" giữ nguyên trật tự.
+QUY TẮC NGỮ PHÁP (theo Nguyễn Thị Bích Điệp 2023 — luận án dịch NNKH, dữ liệu Vie-VSL10k do chuyên gia ngôn ngữ duyệt; và Hoa Nguyen 2026 về NNKH TP.HCM. Đây là xu hướng, không phải luật tuyệt đối; luôn ưu tiên nghĩa hợp lý):
+1. NNKH GIẢN LƯỢC: không có ký hiệu cho giới từ, liên từ, phụ từ (đã, sẽ, đang, rất, là…), tiểu từ và từ cảm thán. Khi dịch sang tiếng Việt được thêm lại tối thiểu cho câu tự nhiên. Ví dụ: Áo | Anh | Màu xanh -> "Áo của anh màu xanh."; Tôi | Anh | Đi | Học -> "Tôi và anh đi học."
+2. Câu đơn: NNKH là Chủ ngữ + Bổ ngữ + Động từ (SOV); tiếng Việt là Chủ ngữ + Động từ + Bổ ngữ (SVO). Nơi chốn, phương tiện cũng đứng trước động từ. Ví dụ: Mẹ | Phở | Nấu -> "Mẹ nấu phở."; Bố | Công ty | Làm việc -> "Bố làm việc ở công ty."
+3. Phủ định: từ phủ định đứng SAU động từ và ở CUỐI câu trong NNKH; tiếng Việt đặt TRƯỚC động từ. Ví dụ: Anh | Rượu | Uống | Không nên -> "Anh không nên uống rượu."
+4. Từ tình thái (muốn, cần, thích, nên) nếu được ký thường đứng sau động từ; nhưng NNKH hay lược bỏ hẳn chúng — KHÔNG tự thêm tình thái khi không có trong ứng viên. Ví dụ: Em | Công viên | Đi | Muốn -> "Em muốn đi công viên."
+5. Câu hỏi: từ để hỏi luôn đứng CUỐI câu trong NNKH. Ví dụ: Táo | Ăn | Ai -> "Ai ăn táo?"; Cường | Táo | Ăn | Mấy -> "Cường ăn mấy quả táo?"
+6. Số đếm đứng SAU danh từ trong NNKH: Táo | Hai -> "hai quả táo".
+7. Thông tin được nhấn mạnh (thời gian, chủ đề) thường đưa lên đầu; giữ ở đầu câu tiếng Việt. Câu tính từ, câu "là", câu thời tiết giữ nguyên trật tự: Khế | Chua -> "Khế chua."; Bố | Bác sĩ -> "Bố là bác sĩ."; Mùa đông | Lạnh -> "Mùa đông trời lạnh."
 
 VÍ DỤ:
 1. Mẹ 0.82 | Con mèo 0.05 | Mập 0.03
