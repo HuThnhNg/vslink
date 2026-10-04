@@ -17,6 +17,7 @@
 	import ListOrdered from '@lucide/svelte/icons/list-ordered';
 	import MessagesSquare from '@lucide/svelte/icons/messages-square';
 
+	const TRUONG = 'Trường Phổ thông Năng khiếu, ĐHQG-HCM';
 	const NHOM = [
 		{ ten: 'Nguyễn Hữu Thịnh', lop: 'Lớp Toán, khoá 2025–2028' },
 		{ ten: 'Phạm Phương Thảo', lop: 'Lớp Toán, khoá 2025–2028' }
@@ -58,11 +59,10 @@
 			{#each NHOM as n (n.ten)}
 				<li>
 					<span class="anh" aria-hidden="true">{viTat(n.ten)}</span>
-					<span><b>{n.ten}</b><small>{n.lop}</small></span>
+					<span class="thong-tin"><b>{n.ten}</b><small>{n.lop}</small><small>{TRUONG}</small></span>
 				</li>
 			{/each}
 		</ul>
-		<p class="phu-de">Trường Phổ thông Năng khiếu, Đại học Quốc gia TP.HCM.</p>
 		<h3>Cảm ơn</h3>
 		<p class="phu-de">
 			Nhóm cảm ơn hai bạn đã đồng hành và hỗ trợ trong giai đoạn đầu xây dựng mô hình nhận dạng ký hiệu:
@@ -71,10 +71,28 @@
 			{#each HO_TRO as n (n.ten)}
 				<li>
 					<span class="anh" aria-hidden="true">{viTat(n.ten)}</span>
-					<span><b>{n.ten}</b><small>{n.lop}</small></span>
+					<span class="thong-tin"><b>{n.ten}</b><small>{n.lop}</small><small>{TRUONG}</small></span>
 				</li>
 			{/each}
 		</ul>
+	</section>
+
+	<section class="the" aria-labelledby="so-lieu">
+		<h2 id="so-lieu"><ChartBar size={22} /> Độ chính xác</h2>
+		<div class="so-lieu">
+			<div><b>400</b><span>từ thông dụng thuộc 19 chủ đề</span></div>
+			<div><b>89,5%</b><span>số lần đoán đúng ngay ở gợi ý đầu tiên</span></div>
+			<div><b>97,8%</b><span>số lần từ đúng nằm trong 5 gợi ý</span></div>
+		</div>
+		<p class="phu-de">
+			Các số liệu trên được đo trên 9.751 video kiểm tra thuộc bộ dữ liệu VSL400, do 10 người ký mà mô hình chưa từng gặp
+			trong quá trình huấn luyện. Khi sử dụng ở nhà, ánh sáng và góc máy thường khác với phòng quay mẫu nên độ chính xác có
+			thể thấp hơn; vì vậy, Mèo luôn đưa ra 5 khả năng thay vì chỉ một.
+		</p>
+		<p class="phu-de">
+			Ghép câu hiện là tính năng thử nghiệm. Trên bộ 101 câu kiểm tra, phương pháp kết hợp Gemini với các quy tắc ngữ pháp của
+			Ngôn ngữ Ký hiệu Việt Nam đạt 83,8 điểm chrF++ (thang 100), cao hơn phương pháp chỉ dùng quy tắc (78,3 điểm).
+		</p>
 	</section>
 
 	<section class="the" aria-labelledby="cach">
@@ -104,47 +122,47 @@
 		<h2 id="minh-bach"><ShieldCheck size={22} /> Minh bạch và riêng tư</h2>
 		<ul class="gach">
 			<li>
-				<b>Hình ảnh camera không rời khỏi máy bạn.</b> Mọi bước nhận dạng chạy ngay trong trình duyệt.
+				<b>Hình ảnh camera:</b> toàn bộ quá trình nhận dạng diễn ra ngay trong trình duyệt, vì vậy hình ảnh và video của bạn
+				không bao giờ rời khỏi thiết bị.
 			</li>
 			<li>
-				<b>Đúng hay sai do mô hình nhận dạng quyết định.</b> Gemini chỉ diễn đạt lại lời nhận xét của Mèo cho dễ hiểu và
-				ghép các từ đã nhận dạng thành câu.
+				<b>Kết quả nhận dạng:</b> việc đánh giá một lần ký là đúng hay chưa đúng hoàn toàn do mô hình nhận dạng quyết định;
+				Gemini chỉ diễn đạt lại lời nhận xét của Mèo cho dễ hiểu và ghép các từ đã nhận dạng thành câu.
 			</li>
 			<li>
-				<b>Chỉ chữ được gửi đi.</b> Khi Mèo nhận xét hoặc ghép câu, web gửi tên các từ và độ chắc chắn tới máy chủ của nhóm
-				để hỏi Gemini, không gửi hình ảnh hay toạ độ cơ thể.
+				<b>Dữ liệu gửi đi:</b> khi Mèo nhận xét hoặc ghép câu, web chỉ gửi tên các từ cùng độ chắc chắn tới máy chủ của nhóm
+				để hỏi Gemini, tuyệt đối không gửi hình ảnh hay toạ độ cơ thể.
 			</li>
 			<li>
-				<b>Tiến độ học lưu trên trình duyệt của bạn</b>, không cần tài khoản. Đổi máy hoặc xoá dữ liệu trình duyệt thì tiến
-				độ cũng mất.
+				<b>Góp ý:</b> mỗi góp ý chỉ gồm nội dung bạn tự viết và kết quả Mèo vừa đưa ra (nếu bạn giữ phần đính kèm); thông tin
+				liên hệ là không bắt buộc.
+			</li>
+			<li>
+				<b>Tiến độ học:</b> dữ liệu được lưu trên chính trình duyệt của bạn nên không cần tạo tài khoản; tuy nhiên, nếu bạn
+				đổi thiết bị hoặc xoá dữ liệu trình duyệt thì tiến độ cũng sẽ mất.
 			</li>
 		</ul>
 	</section>
 
-	<section class="the" aria-labelledby="so-lieu">
-		<h2 id="so-lieu"><ChartBar size={22} /> Độ chính xác</h2>
-		<div class="so-lieu">
-			<div><b>400</b><span>từ thông dụng trong 19 chủ đề</span></div>
-			<div><b>89,5%</b><span>đoán đúng ngay lần đầu</span></div>
-			<div><b>97,8%</b><span>có từ đúng trong 5 gợi ý</span></div>
-		</div>
-		<p class="phu-de">
-			Đo trên 9.751 video kiểm tra của bộ VSL400, do 10 người ký mà mô hình chưa từng gặp khi học. Ở nhà, ánh sáng và góc
-			máy khác phòng quay nên kết quả có thể thấp hơn; vì vậy Mèo luôn cho xem 5 khả năng chứ không chỉ một.
-		</p>
-		<p class="phu-de">
-			Ghép câu là tính năng thử nghiệm. Trên 101 câu kiểm tra, cách dùng Gemini kèm quy tắc ngữ pháp đạt điểm chrF++ 83,8,
-			cao hơn cách sắp xếp bằng quy tắc thuần (78,3).
-		</p>
-	</section>
 
 	<section class="the" aria-labelledby="gioi-han">
 		<h2 id="gioi-han"><TriangleAlert size={22} /> Giới hạn hiện tại</h2>
 		<ul class="gach">
-			<li>VSLink mới nhận ra 400 từ đơn. Bộ từ chưa có đại từ như “tôi”, “bạn” và các từ để hỏi.</li>
-			<li>Khi ghép câu, cần hạ tay xuống giữa các từ. VSLink chưa dịch được khi ký liền mạch.</li>
-			<li>Nét mặt mang nhiều nghĩa trong ngôn ngữ ký hiệu (câu hỏi, phủ định), nhưng VSLink chưa đọc được nét mặt.</li>
-			<li>Máy yếu có thể chạy chậm. Khi đó nên dùng “Tải video lên” ở trang Dịch.</li>
+			<li>
+				<b>Vốn từ:</b> VSLink hiện mới nhận dạng được 400 từ đơn; bộ từ vựng chưa có các đại từ như “tôi”, “bạn” và các từ để
+				hỏi.
+			</li>
+			<li>
+				<b>Cách ký khi ghép câu:</b> bạn cần hạ tay xuống giữa các từ, vì VSLink chưa dịch được những câu được ký liền mạch.
+			</li>
+			<li>
+				<b>Nét mặt:</b> trong ngôn ngữ ký hiệu, nét mặt mang nhiều ý nghĩa ngữ pháp (chẳng hạn câu hỏi hay câu phủ định), nhưng
+				VSLink hiện chưa nhận biết được nét mặt.
+			</li>
+			<li>
+				<b>Hiệu năng:</b> trên máy có cấu hình yếu, web có thể chạy chậm; khi đó, bạn nên chọn chế độ “Video” ở trang Dịch để
+				tải video lên thay vì dùng camera trực tiếp.
+			</li>
 		</ul>
 	</section>
 
@@ -233,23 +251,35 @@
 		margin: 0 0 6px;
 		padding: 0;
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 12px;
 	}
 	.ds-nguoi li {
 		display: flex;
 		align-items: center;
-		gap: 12px;
-		padding: 12px;
+		gap: 14px;
+		padding: 14px 16px;
 		border-radius: var(--bo-vua);
 		background: var(--xanh-nhat);
 	}
-	.ds-nguoi li > span:last-child {
+	@media (max-width: 640px) {
+		.ds-nguoi {
+			grid-template-columns: 1fr;
+		}
+	}
+	.thong-tin {
 		display: grid;
+		gap: 2px;
+		min-width: 0;
+	}
+	.thong-tin b {
+		font-size: 1.05rem;
 	}
 	.ds-nguoi small {
 		color: var(--chu-phu);
 		font-weight: 650;
+		font-size: 0.9rem;
+		line-height: 1.35;
 	}
 	.anh {
 		display: grid;
@@ -268,9 +298,9 @@
 		border: 1px solid var(--vien);
 	}
 	.ds-nguoi.nho .anh {
-		width: 40px;
-		height: 40px;
-		font-size: 1rem;
+		width: 48px;
+		height: 48px;
+		font-size: 1.05rem;
 		background: var(--xanh-nhat-2);
 		color: var(--xanh-dam);
 	}

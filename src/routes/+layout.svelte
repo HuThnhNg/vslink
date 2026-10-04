@@ -75,16 +75,15 @@
 <footer class="chan-trang">
 	<div class="khung-trang">
 		<p>
-			<strong>VSLink</strong> · Dịch và học Ngôn ngữ Ký hiệu Việt Nam · Hình ảnh camera được xử lý
-			<strong>ngay trên máy bạn</strong>, không gửi đi đâu.
+			<strong>VSLink</strong> · Dịch thuật và học Ngôn ngữ Ký hiệu Việt Nam · Hình ảnh camera được xử lý trực tiếp trên máy
+			bạn
 		</p>
 		<p class="lien-ket">
 			<a href="{base}/gioi-thieu/">Về dự án</a>
 			<a href="{base}/gop-y/">Góp ý</a>
 		</p>
 		<p class="nho">
-			Một dự án của học sinh Trường Phổ thông Năng khiếu, ĐHQG-HCM · Video mẫu: Từ điển Ngôn ngữ ký hiệu, dự án QIPEDC
-			(Bộ GD&ĐT)
+			Một dự án của học sinh Trường Phổ thông Năng khiếu, ĐHQG-HCM
 		</p>
 	</div>
 </footer>
