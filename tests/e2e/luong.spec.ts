@@ -24,7 +24,7 @@ test('dich: tai video len khi khong tai duoc MediaPipe -> bao loi de hieu', asyn
 	const loi = await chuanBi(page);
 	await page.goto('dich/?che=video');
 	await page.getByTestId('chon-video').setInputFiles(VIDEO_GIA);
-	await expect(page.locator('.tai-len .loi')).toContainText('MediaPipe', { timeout: 60_000 });
+	await expect(page.locator('.tai-len .loi')).toContainText('bộ nhận dáng người', { timeout: 60_000 });
 	await expect(page.getByRole('button', { name: 'Đoán lại' })).toBeVisible();
 	expect(loi.filter((l) => !/MediaPipe|holistic|fetch|Failed|ERR_/i.test(l))).toEqual([]);
 });
@@ -115,7 +115,7 @@ test('camera that tren may cham: khong tai duoc MediaPipe -> bao loi + nut thu l
 	await chuanBi(page);
 	await page.goto('dich/');
 	await page.getByRole('button', { name: 'Bật camera' }).click();
-	await expect(page.getByText('Không tải được mô hình nhận dạng dáng người')).toBeVisible({ timeout: 60_000 });
+	await expect(page.getByText('Không tải được bộ nhận dáng người')).toBeVisible({ timeout: 60_000 });
 	await expect(page.getByRole('button', { name: 'Thử lại' })).toBeVisible();
 });
 

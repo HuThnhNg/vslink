@@ -14,18 +14,18 @@ function chon<T>(ds: T[], r: () => number): T {
 
 const MO_DAU = {
 	dung: [
-		'Gâu gâu! Đuôi Mèo vẫy tít rồi — đúng “{tu}” luôn ({p})!',
+		'Gâu gâu! Đuôi Mèo vẫy tít rồi, đúng “{tu}” luôn ({p})!',
 		'Chuẩn không cần chỉnh! Mèo chắc {p} đây là “{tu}”.',
 		'Tuyệt cú mèo… à nhầm, tuyệt cú cún! “{tu}” chuẩn {p}.'
 	],
 	'gan-dung': [
-		'Suýt trúng rồi! “{tu}” đứng thứ {hang}, Mèo đang tưởng là “{doan}”.',
-		'Gần lắm rồi nè: “{tu}” hạng {hang}, Mèo hơi nghiêng về “{doan}”.',
-		'Mũi Mèo đánh hơi thấy “{tu}” ở hạng {hang}, nhưng “{doan}” đang dẫn trước.'
+		'Suýt trúng rồi! Mèo đang tưởng là “{doan}”, nhưng “{tu}” cũng nằm trong danh sách của Mèo.',
+		'Gần lắm rồi nè! Mèo hơi nghiêng về “{doan}” hơn “{tu}” một chút.',
+		'Mũi Mèo đánh hơi thấy “{tu}”, nhưng “{doan}” đang dẫn trước.'
 	],
 	'chua-dung': [
 		'Hmm, Mèo chưa nhận ra “{tu}” — trông giống “{doan}” hơn.',
-		'Chưa trúng nha: Mèo đoán ra “{doan}”, còn “{tu}” đứng thứ {hang}/400.',
+		'Chưa trúng nha! Mèo đoán ra “{doan}”, chưa nhận ra “{tu}”.',
 		'Mèo nghiêng đầu mất rồi… động tác này giống “{doan}” hơn “{tu}”.'
 	]
 } as const;
@@ -40,13 +40,13 @@ function goiYPhan(ten: Phan, d: DanhGiaPhan): string | null {
 	// "khong-thay" chi la it thay tay do trong khung hinh: tu chi dung mot tay thi
 	// tay kia ha xuong la binh thuong -> chi nhac nhe, khong coi la loi.
 	if (d === 'khong-thay')
-		return `Mèo ít thấy ${TEN_TAY[ten]} trong khung hình — nếu từ này cần tay đó, nhớ để tay lọt vào camera nhé.`;
+		return `Mèo ít thấy ${TEN_TAY[ten]} trong khung hình. Nếu từ này cần tay đó, nhớ để tay lọt vào camera nhé.`;
 	if (ten === 'canhTay') {
 		if (d === 'lech-nhieu') return 'Vị trí và đường đi của tay còn khác mẫu nhiều: để ý tay đặt ở đâu so với người và di chuyển theo hướng nào.';
 		if (d === 'hoi-lech') return 'Vị trí tay hơi khác mẫu một chút.';
 		return null;
 	}
-	if (d === 'lech-nhieu') return `Hình dạng ${TEN_TAY[ten]} khác mẫu khá nhiều — xem kỹ các ngón ở video mẫu nha.`;
+	if (d === 'lech-nhieu') return `Hình dạng ${TEN_TAY[ten]} khác mẫu khá nhiều. Xem kỹ các ngón ở video mẫu nha.`;
 	if (d === 'hoi-lech') return `Hình dạng ${TEN_TAY[ten]} hơi khác mẫu một chút.`;
 	return null;
 }
@@ -73,7 +73,7 @@ export function cacY(d: DuKien): string[] {
 		if (khop.length) y.push(`${TEN_TAY[khop[0]][0].toUpperCase()}${TEN_TAY[khop[0]].slice(1)} làm giống mẫu lắm!`);
 	}
 	if (d.chatLuong.thoiLuong > 0 && d.chatLuong.thoiLuong < 0.8 && d.mucDo !== 'dung')
-		y.push('Bạn ký hơi nhanh — thử chậm lại một chút cho Mèo nhìn kịp.');
+		y.push('Bạn ký hơi nhanh. Thử chậm lại một chút cho Mèo nhìn kịp.');
 	return y.slice(0, 3);
 }
 

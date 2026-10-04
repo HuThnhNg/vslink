@@ -1,8 +1,9 @@
 <!--
 	Thong dich: ky truc tiep truoc camera (tu cat doan) hoac tai video len.
 	Moi xu ly deu tren may nguoi dung: MediaPipe -> 60 khung -> mo hinh ONNX -> top 5.
-	Che do "Ghep cau": gom top-3 cua tung tu thanh day, nghi 3 giay -> Worker/Gemini ghep thanh cau
-	(src/lib/cau/ghep-cau.ts; khong co Worker thi noi tu).
+	Ba che do: Ky tung tu · Ghep cau (gom top-3 cua tung tu, nghi 3 giay -> Worker/Gemini ghep thanh
+	cau, src/lib/cau/ghep-cau.ts; khong co Worker thi noi tu) · Tai video len.
+	Loi tren man hinh noi ve KET QUA, khong noi ve cong nghe (AI hay khong) — phan do o /gioi-thieu/.
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
@@ -23,7 +24,10 @@
 	import { docVideo, LoiMediaPipe } from '$lib/loi/video-tai-len';
 	import { napCauHinh } from '$lib/meo/hoi-meo';
 	import { ghepCau, themTu, TOI_DA_TU, tuDaDoi, type KetQuaCau, type TuTrongCau } from '$lib/cau/ghep-cau';
+	import { moGopY } from '$lib/gop-y/gop-y.svelte';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
+	import MessagesSquare from '@lucide/svelte/icons/messages-square';
+	import MessageCircleWarning from '@lucide/svelte/icons/message-circle-warning';
 	import X from '@lucide/svelte/icons/x';
 	import Camera from '@lucide/svelte/icons/camera';
 	import Upload from '@lucide/svelte/icons/upload';
@@ -33,7 +37,8 @@
 
 	type KetQua = { top: DuDoan[]; chatLuong: ChatLuong; nguon: 'camera' | 'video' };
 
-	let che = $state<'truc-tiep' | 'video'>('truc-tiep');
+	type Che = 'truc-tiep' | 'cau' | 'video';
+	let che = $state<Che>('truc-tiep');
 	let giaLap = $state(false);
 	let ketQua = $state<KetQua | null>(null);
 	let thongBao = $state<string | null>(null);
@@ -42,7 +47,8 @@
 
 	// ---- ghep cau --------------------------------------------------------------
 	const CHO_GHEP_MS = 3000; // nghi bao lau sau tu cuoi thi tu ghep cau
-	let cheDoCau = $state(false);
+	const cheDoCau = $derived(che === 'cau');
+	let moChon = $state<number | null>(null); // id cua tu dang mo bang doi tu
 	let dayCau = $state<TuTrongCau[]>([]);
 	let ketQuaCau = $state<KetQuaCau | null>(null);
 	let dangGhep = $state(false);
@@ -75,6 +81,14 @@
 		huyHen();
 		dayCau = moi;
 		ketQuaCau = null;
+		if (!moi.some((t) => t.id === moChon)) moChon = null;
+	}
+
+	/** Nguoi dung tu chon lai mot tu (khi Meo nhan nham): giu dung tu do, ghep lai cau. */
+	function chonTu(id: number, u: DuDoan) {
+		doiDayCau(dayCau.map((t) => (t.id === id ? { ...t, ungVien: [{ ...u, p: 1 }] } : t)));
+		moChon = null;
+		ghep();
 	}
 
 	// ---- cham mot doan ky hieu ------------------------------------------------
@@ -94,7 +108,7 @@
 			}
 		} catch (e) {
 			console.error(e);
-			loiCham = 'Mèo không chạy được mô hình nhận dạng (có thể do mạng yếu khi tải lần đầu). Tải lại trang rồi thử nhé.';
+			loiCham = 'Mèo chưa sẵn sàng nhận dạng, có thể do mạng yếu khi tải lần đầu. Tải lại trang rồi thử nhé.';
 		}
 	}
 
@@ -109,7 +123,7 @@
 		}
 	});
 
-	const dangCham = $derived(che === 'truc-tiep' && phien.pha === 'dang-cham');
+	const dangCham = $derived(che !== 'video' && phien.pha === 'dang-cham');
 	const dau = $derived(ketQua?.top[0] ?? null);
 	const chuaChac = $derived(!!dau && dau.p < DANH_GIA.nguongChuaChac);
 	const goiY = $derived(ketQua ? goiYGhiHinh(ketQua.chatLuong) : null);
@@ -156,21 +170,38 @@
 			console.error(e);
 			loiVideo =
 				e instanceof LoiMediaPipe
-					? 'Mèo chưa tải được mô hình nhìn dáng người (MediaPipe). Kiểm tra mạng rồi bấm “Đoán lại” nhé.'
+					? 'Mèo chưa tải được bộ nhận dáng người. Kiểm tra mạng rồi bấm “Đoán lại” nhé.'
 					: `Mèo không đọc được video này (${(e as Error)?.message ?? e}). Thử video .mp4 hoặc .webm khác nhé.`;
 		} finally {
 			dangDoc = false;
 		}
 	}
 
-	function doiChe(c: typeof che) {
+	function doiChe(c: Che) {
+		if ((c === 'cau') !== (che === 'cau')) doiDayCau([]);
 		che = c;
 		thongBao = null;
 	}
 
+	const TIEU_DE: Record<Che, { h1: string; mo_ta: string }> = {
+		'truc-tiep': {
+			h1: 'Bạn ký, Mèo đoán!',
+			mo_ta: 'Giơ tay lên ký một từ rồi hạ tay xuống. Mèo tự biết lúc bạn bắt đầu và kết thúc, không cần bấm nút.'
+		},
+		cau: {
+			h1: 'Ký từng từ, Mèo ghép thành câu',
+			mo_ta: 'Ký lần lượt từng từ và hạ tay xuống giữa các từ. Nghỉ 3 giây là Mèo sắp xếp thành một câu tiếng Việt.'
+		},
+		video: {
+			h1: 'Gửi video, Mèo đoán!',
+			mo_ta: 'Chọn một video ngắn quay một từ ký hiệu. Video chỉ được xử lý trên máy bạn.'
+		}
+	};
+
 	onMount(() => {
 		giaLap = page.url.searchParams.has('gia-lap');
-		if (page.url.searchParams.get('che') === 'video') che = 'video';
+		const c = page.url.searchParams.get('che');
+		if (c === 'video' || c === 'cau') che = c;
 		return () => {
 			if (urlXem) URL.revokeObjectURL(urlXem);
 			huyHen();
@@ -184,30 +215,46 @@
 	<header class="dau-trang">
 		<div>
 			<p class="nhan-nho">Thông dịch</p>
-			<h1>Bạn ký, Mèo đoán!</h1>
-			<p class="phu-de">
-				Giơ tay lên ký một từ, ký xong thì hạ tay xuống — Mèo tự biết lúc bạn bắt đầu và kết thúc, không cần bấm
-				nút.
-			</p>
+			<h1>{TIEU_DE[che].h1}</h1>
+			<p class="phu-de">{TIEU_DE[che].mo_ta}</p>
 		</div>
 		<div class="tab" role="tablist" aria-label="Cách dịch">
 			<button role="tab" aria-selected={che === 'truc-tiep'} onclick={() => doiChe('truc-tiep')}>
-				<Camera size={18} /> Ký trực tiếp
+				<Camera size={18} /> Từng từ
+			</button>
+			<button role="tab" aria-selected={che === 'cau'} onclick={() => doiChe('cau')} data-testid="che-cau">
+				<MessagesSquare size={18} /> Ghép câu
 			</button>
 			<button role="tab" aria-selected={che === 'video'} onclick={() => doiChe('video')}>
-				<Upload size={18} /> Tải video lên
+				<Upload size={18} /> Video
 			</button>
 		</div>
 	</header>
 
 	<div class="luoi">
 		<section class="the cot-nhap">
-			{#if che === 'truc-tiep'}
+			{#if che !== 'video'}
 				{#if giaLap}
 					<p class="gia-lap">Chế độ giả lập: một “người que” tự ký để thử cả luồng xử lý, không dùng camera.</p>
 				{/if}
-				<KhungCamera {phien} {giaLap}>
-					{#if ketQua && dau && ketQua.nguon === 'camera' && phien.pha !== 'dang-ky'}
+				<KhungCamera
+					{phien}
+					{giaLap}
+					goiY={cheDoCau ? (dayCau.length ? 'Ký từ tiếp theo nhé!' : 'Giơ tay lên và ký từ đầu tiên nhé!') : undefined}
+				>
+					{#if cheDoCau}
+						{#if dayCau.length}
+							<!-- phu de tren camera: nguoi dang ky thay ngay day tu va cau, khong phai cuon -->
+							<div class="phu-de-cau" data-testid="phu-de-cau">
+								<span class="tu-cam">{dayCau.map((t) => t.ungVien[0].tu).join(' · ')}</span>
+								{#if dangGhep}
+									<span class="cau-cam">Mèo đang ghép câu…</span>
+								{:else if ketQuaCau}
+									<span class="cau-cam">{ketQuaCau.cau}</span>
+								{/if}
+							</div>
+						{/if}
+					{:else if ketQua && dau && ketQua.nguon === 'camera' && phien.pha !== 'dang-ky'}
 						{#key ketQua}
 							<div class="phu-de-cam" class:chua-chac={chuaChac} in:fly={{ y: 16, duration: 250 }}>
 								{dau.tu} <small>{phanTram(dau.p)}</small>
@@ -271,22 +318,30 @@
 		</section>
 
 		<section class="the cot-ket-qua" aria-live="polite" data-testid="ket-qua-dich">
-			<label class="cong-tac">
-				<input type="checkbox" bind:checked={cheDoCau} onchange={() => doiDayCau([])} data-testid="bat-ghep-cau" />
-				<span>
-					<b>Ghép câu</b>
-					<small>Ký từng từ, hạ tay giữa các từ. Nghỉ 3 giây là Mèo ghép thành câu tiếng Việt.</small>
-				</span>
-			</label>
 			{#if cheDoCau}
+				{#if loiCham}
+					<BongMeo tamTrang="boi-roi" cau={loiCham} />
+				{:else if thongBao}
+					<BongMeo tamTrang="boi-roi" cau={thongBao} />
+				{/if}
 				<div class="khung-cau" data-testid="khung-cau">
 					{#if dayCau.length}
 						<ol class="day-cau" aria-label="Các từ đã ký">
 							{#each dayCau as t, k (t.id)}
-								<li class="chip" class:chua-chac={t.ungVien[0].p < DANH_GIA.nguongChuaChac}>
-									<span class="so">{k + 1}</span>
-									{t.ungVien[0].tu}
-									<small>{phanTram(t.ungVien[0].p)}</small>
+								<li
+									class="chip"
+									class:chua-chac={t.ungVien[0].p < DANH_GIA.nguongChuaChac}
+									class:dang-mo={moChon === t.id}
+								>
+									<button
+										class="tu-nut"
+										onclick={() => (moChon = moChon === t.id ? null : t.id)}
+										aria-expanded={moChon === t.id}
+										aria-label="Từ thứ {k + 1}: {t.ungVien[0].tu}. Bấm để đổi từ khác"
+									>
+										<span class="so">{k + 1}</span>
+										{t.ungVien[0].tu}
+									</button>
 									<button
 										class="xoa-tu"
 										onclick={() => doiDayCau(dayCau.filter((x) => x.id !== t.id))}
@@ -295,35 +350,74 @@
 								</li>
 							{/each}
 						</ol>
-						{#if dayCau.length >= TOI_DA_TU}<p class="nho">Đủ {TOI_DA_TU} từ rồi — bấm “Dịch thành câu” nhé.</p>{/if}
-					{:else}
-						<p class="nho">Chưa có từ nào. Ký từ đầu tiên đi!</p>
+						{#each dayCau.filter((t) => t.id === moChon) as t (t.id)}
+							<div class="doi-tu" data-testid="doi-tu">
+								{#if t.ungVien.length > 1}
+									<span>Không phải “{t.ungVien[0].tu}”? Chọn từ đúng:</span>
+									<div class="chip-ds">
+										{#each t.ungVien.slice(1) as u (u.i)}
+											<button class="chip" onclick={() => chonTu(t.id, u)}>{u.tu}</button>
+										{/each}
+									</div>
+								{:else}
+									<span>Bạn đã chọn từ này. Nếu vẫn chưa đúng, bấm × để bỏ rồi ký lại.</span>
+								{/if}
+							</div>
+						{/each}
+						{#if dayCau.length >= TOI_DA_TU}<p class="nho">Đã đủ {TOI_DA_TU} từ. Bấm “Dịch thành câu” nhé.</p>{/if}
 					{/if}
+
 					{#if dangGhep}
 						<p class="nho" role="status">Mèo đang ghép câu…</p>
 					{:else if ketQuaCau}
 						<p class="cau-lon" data-testid="cau-ghep">{ketQuaCau.cau}</p>
-						<p class="nho">
-							{ketQuaCau.nguon === 'ai'
-								? 'Mèo ghép bằng AI: đã đổi trật tự ký hiệu sang câu tiếng Việt.'
-								: 'Chưa có AI: Mèo nối các từ theo đúng thứ tự bạn ký.'}
-						</p>
+						{#if ketQuaCau.nguon === 'noi' && dayCau.length > 1}
+							<p class="nho" data-testid="cau-chua-sap-xep">
+								Mèo chưa sắp xếp được thành câu lúc này. Đây là các từ theo thứ tự bạn ký.
+							</p>
+						{/if}
 						{#each doiTu as d (d.thay)}
-							<p class="canh-bao">Mèo chọn “{d.tu}” thay cho “{d.thay}” cho hợp nghĩa.</p>
+							<p class="canh-bao">
+								Mèo chọn “{d.tu}” thay cho “{d.thay}” cho hợp nghĩa. Nếu chưa đúng, bấm vào từ đó để đổi.
+							</p>
 						{/each}
+					{:else if !dayCau.length}
+						<BongMeo tamTrang={phien.pha === 'dang-ky' ? 'nghe' : 'cho'}>
+							<p class="meo-noi">Mèo sẵn sàng ghép câu rồi!</p>
+						</BongMeo>
+						<ol class="buoc">
+							<li><b>Ký từng từ</b>, hạ tay xuống sau mỗi từ.</li>
+							<li><b>Nghỉ 3 giây.</b> Mèo sẽ sắp xếp các từ thành câu.</li>
+							<li><b>Bấm vào một từ</b> nếu Mèo nhận nhầm để chọn từ đúng.</li>
+						</ol>
 					{/if}
-					<div class="nut-cau">
-						<button class="nut" onclick={ghep} disabled={!dayCau.length || dangGhep} data-testid="dich-thanh-cau">
-							<Sparkles size={18} /> Dịch thành câu
-						</button>
-						<button class="nut vien" onclick={() => doiDayCau([])} disabled={!dayCau.length}>
-							<Trash size={16} /> Làm lại
-						</button>
-					</div>
-				</div>
-			{/if}
 
-			{#if loiCham}
+					{#if dayCau.length}
+						<div class="nut-cau">
+							<button class="nut" onclick={ghep} disabled={dangGhep} data-testid="dich-thanh-cau">
+								<Sparkles size={18} /> Dịch thành câu
+							</button>
+							<button class="nut vien" onclick={() => doiDayCau([])}>
+								<Trash size={16} /> Làm lại
+							</button>
+						</div>
+					{/if}
+				</div>
+				{#if ketQuaCau}
+					<button
+						class="nut-chu gop-y"
+						onclick={() =>
+							moGopY({
+								trang: 'ghep-cau',
+								theLoai: 'cau-sai',
+								tuDoan: dayCau.map((t) => t.ungVien[0].tu),
+								cau: ketQuaCau?.cau
+							})}
+					>
+						<MessageCircleWarning size={16} /> Câu chưa đúng? Báo cho nhóm
+					</button>
+				{/if}
+			{:else if loiCham}
 				<BongMeo tamTrang="boi-roi" cau={loiCham} />
 			{:else if dangCham || dangDoc}
 				<BongMeo tamTrang="suy-nghi" dangNghi />
@@ -338,30 +432,45 @@
 				</BongMeo>
 				{#if chuaChac}
 					<p class="canh-bao">
-						Mèo chưa chắc lắm — có thể là một trong các từ dưới đây. Thử ký chậm và rõ hơn, hoặc xem video mẫu ở
-						mục Học.
+						Mèo chưa chắc lắm, có thể là một trong các từ dưới đây. Thử ký chậm và rõ hơn, hoặc xem video mẫu ở mục Học.
 					</p>
 				{/if}
 				{#if goiY}<p class="canh-bao">{goiY}</p>{/if}
 				<h2 class="tieu-de-nho">5 từ Mèo nghĩ tới</h2>
 				<Top5 ds={ketQua.top} lienKet />
-				<a class="nut vien hoc-tu" href="{base}/hoc/?tu={dau.i}">
-					<GraduationCap size={18} /> Học ký “{dau.tu}” cho chuẩn
-				</a>
+				<div class="nut-cau">
+					<a class="nut vien hoc-tu" href="{base}/hoc/?tu={dau.i}">
+						<GraduationCap size={18} /> Học ký “{dau.tu}” cho chuẩn
+					</a>
+					<button
+						class="nut-chu gop-y"
+						onclick={() => moGopY({ trang: 'dich', theLoai: 'doan-sai', tuDoan: ketQua?.top.map((t) => t.tu) ?? [] })}
+					>
+						<MessageCircleWarning size={16} /> Mèo đoán sai? Báo cho nhóm
+					</button>
+				</div>
 			{:else}
 				<BongMeo tamTrang={phien.pha === 'dang-ky' ? 'nghe' : 'cho'}>
 					<p class="meo-noi">
 						{phien.pha === 'dang-ky' ? 'Mèo đang nhìn đây, cứ ký tiếp đi…' : 'Mèo sẵn sàng rồi! Làm theo 3 bước nhé:'}
 					</p>
 				</BongMeo>
-				<ol class="buoc">
-					<li><b>Bật camera</b>, ngồi lùi ra cho thấy từ đầu đến bụng.</li>
-					<li><b>Giơ tay lên và ký</b> một từ trong 400 từ Mèo biết.</li>
-					<li><b>Hạ tay xuống</b> — Mèo tự đoán và cho xem 5 khả năng.</li>
-				</ol>
+				{#if che === 'video'}
+					<ol class="buoc">
+						<li><b>Chọn video</b> quay một từ, thấy người ký từ đầu đến bụng.</li>
+						<li><b>Chờ Mèo xem</b> từng hình trong video.</li>
+						<li><b>Xem kết quả</b> với 5 từ Mèo nghĩ tới.</li>
+					</ol>
+				{:else}
+					<ol class="buoc">
+						<li><b>Bật camera</b>, ngồi lùi ra để camera thấy bạn từ đầu đến bụng.</li>
+						<li><b>Giơ tay lên và ký</b> một từ trong 400 từ Mèo biết.</li>
+						<li><b>Hạ tay xuống.</b> Mèo tự đoán và cho xem 5 khả năng.</li>
+					</ol>
+				{/if}
 			{/if}
 
-			{#if lichSu.length}
+			{#if lichSu.length && !cheDoCau}
 				<div class="lich-su">
 					<div class="lich-su-dau">
 						<h2 class="tieu-de-nho">Vừa dịch</h2>
@@ -461,6 +570,12 @@
 		min-height: 320px;
 		align-content: start;
 	}
+	@media (max-width: 900px) {
+		/* dien thoai: cot ket qua nam duoi camera, khong can chieu cao toi thieu (tranh khoang trang) */
+		.cot-ket-qua {
+			min-height: 0;
+		}
+	}
 	.meo-noi {
 		margin: 0;
 		font-weight: 750;
@@ -528,7 +643,67 @@
 	.day-cau .chip {
 		display: inline-flex;
 		align-items: center;
-		gap: 5px;
+		gap: 2px;
+		padding: 0 4px 0 0;
+	}
+	.day-cau .chip.dang-mo {
+		border-color: var(--xanh);
+		box-shadow: 0 0 0 2px color-mix(in srgb, var(--xanh) 35%, transparent);
+	}
+	.tu-nut {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 6px 4px 6px 12px;
+		border: 0;
+		background: transparent;
+		color: inherit;
+		font: inherit;
+		font-weight: 800;
+		cursor: pointer;
+	}
+	.doi-tu {
+		display: grid;
+		gap: 8px;
+		padding: 10px 12px;
+		border-radius: var(--bo-nho);
+		background: var(--the);
+		border: 1px solid var(--vien);
+		font-weight: 700;
+	}
+	.chip-ds button.chip {
+		cursor: pointer;
+		font: inherit;
+		font-weight: 800;
+	}
+	.nut-chu.gop-y {
+		justify-self: start;
+		color: var(--xanh-chu);
+		padding: 6px 0;
+	}
+	/* phu de tren camera o che do ghep cau */
+	.phu-de-cau {
+		display: grid;
+		gap: 4px;
+		justify-items: center;
+		max-width: 100%;
+		padding: 10px 16px;
+		border-radius: 18px;
+		background: color-mix(in srgb, var(--xanh-dam) 88%, transparent);
+		color: #fff;
+		text-align: center;
+		box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.5);
+		backdrop-filter: blur(6px);
+	}
+	.tu-cam {
+		font-weight: 800;
+		font-size: 0.95rem;
+		opacity: 0.9;
+	}
+	.cau-cam {
+		font-weight: 900;
+		font-size: clamp(1.1rem, 3vw, 1.5rem);
+		line-height: 1.25;
 	}
 	.day-cau .chip.chua-chac {
 		background: var(--vang-nhat);

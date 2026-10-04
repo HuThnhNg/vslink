@@ -11,6 +11,9 @@
 	import Hand from '@lucide/svelte/icons/hand';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
 	import ShieldCheck from '@lucide/svelte/icons/shield-check';
+	import MessagesSquare from '@lucide/svelte/icons/messages-square';
+	import Users from '@lucide/svelte/icons/users';
+	import MessageCircleHeart from '@lucide/svelte/icons/message-circle-heart';
 	import Lightbulb from '@lucide/svelte/icons/lightbulb';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import Flame from '@lucide/svelte/icons/flame';
@@ -23,29 +26,36 @@
 		{
 			href: '/dich/',
 			icon: Languages,
-			ten: 'Dịch ký hiệu',
-			mo_ta: 'Ký trước camera hoặc tải video lên — Mèo đoán từ và cho xem 5 khả năng gần nhất.',
+			ten: 'Dịch từng từ',
+			mo_ta: 'Ký một từ trước camera, Mèo cho biết đó là từ gì. Có thể tải video lên thay cho camera.',
 			mau: 'xanh'
+		},
+		{
+			href: '/dich/?che=cau',
+			icon: MessagesSquare,
+			ten: 'Ghép thành câu',
+			mo_ta: 'Ký lần lượt từng từ, Mèo sắp xếp lại thành một câu tiếng Việt hoàn chỉnh.',
+			mau: 'tim'
 		},
 		{
 			href: '/hoc/',
 			icon: GraduationCap,
 			ten: 'Học 400 từ',
-			mo_ta: 'Xem video mẫu, ký lại, được chấm từng lần: đúng/sai, bàn tay nào, đoạn nào khác mẫu.',
+			mo_ta: 'Xem video mẫu rồi ký lại. Mèo chấm từng lần và chỉ ra bàn tay hay đoạn nào cần sửa.',
 			mau: 'la'
 		},
 		{
 			href: '/do-vui/',
 			icon: Gamepad2,
 			ten: 'Đố vui',
-			mo_ta: 'Xem ký hiệu đoán nghĩa, hoặc thấy chữ tự ký. Vài phút mỗi ngày là nhớ lâu.',
+			mo_ta: 'Xem ký hiệu rồi đoán nghĩa, hoặc thấy chữ rồi tự ký. Vài phút mỗi ngày là nhớ lâu.',
 			mau: 'vang'
 		},
 		{
 			href: '/tien-do/',
 			icon: Trophy,
 			ten: 'Tiến độ',
-			mo_ta: 'Chuỗi ngày học, số từ đã thuộc, lịch ôn tập hẹn đúng lúc sắp quên.',
+			mo_ta: 'Theo dõi chuỗi ngày học và số từ đã thuộc. Mèo nhắc ôn đúng lúc bạn sắp quên.',
 			mau: 'hong'
 		}
 	];
@@ -61,13 +71,14 @@
 			<p class="nhan-nho">Ngôn ngữ Ký hiệu Việt Nam</p>
 			<h1>Bạn ký bằng tay,<br /><span class="to-dam">Mèo hiểu liền!</span></h1>
 			<p class="mo-ta">
-				VSLink nhận ra <b>400 từ ký hiệu</b> thông dụng qua camera, ngay trên trình duyệt. Dịch thử, học theo video mẫu,
-				và nghe bạn chó Mèo nhận xét từng lần ký.
+				VSLink nhận ra <b>400 từ</b> Ngôn ngữ Ký hiệu Việt Nam thông dụng qua camera. Dịch từng từ, ghép thành câu, học
+				theo video mẫu và để bạn chó Mèo nhận xét từng lần ký.
 			</p>
 			<div class="nut-ds">
 				<a class="nut lon" href="{base}/dich/"><Camera size={20} /> Thử dịch ngay</a>
 				<a class="nut phu lon" href="{base}/hoc/"><GraduationCap size={20} /> Học cùng Mèo</a>
 			</div>
+			<p class="rieng-tu"><ShieldCheck size={18} /> Hình ảnh camera được xử lý ngay trên máy bạn, không gửi đi đâu.</p>
 			{#if tienDo.soDaTap}
 				<div class="quay-lai">
 					<span><Flame size={16} /> Chuỗi {tienDo.chuoiNgay} ngày</span>
@@ -87,54 +98,36 @@
 			<span class="the-noi t3">Yêu thương</span>
 			<div class="meo-lon"><Meo tamTrang="vui" kichThuoc={200} /></div>
 			<p class="bong-hero">
-				Gâu! Mình là <b>Mèo</b> — chó thật đó, chỉ tên Mèo thôi. Mình ký được cả “Con chó” lẫn “Con mèo” nha!
+				Gâu! Mình là <b>Mèo</b>, chó thật đó, chỉ tên Mèo thôi. Mình ký được cả “Con chó” lẫn “Con mèo” nha!
 			</p>
 		</div>
 	</section>
 
-	<section class="so-lieu" aria-label="Vài con số">
-		<div>
-			<b>400</b>
-			<span>từ thông dụng trong 19 chủ đề: gia đình, ăn uống, màu sắc…</span>
-		</div>
-		<div>
-			<b>89,5%</b>
-			<span>đoán đúng ngay lần đầu trên tập kiểm tra VSL400 (người ký mô hình chưa từng gặp)</span>
-		</div>
-		<div>
-			<b>97,8%</b>
-			<span>có từ đúng nằm trong 5 gợi ý Mèo đưa ra</span>
-		</div>
-		<div>
-			<b>0</b>
-			<span>hình ảnh gửi lên mạng — mọi xử lý diễn ra ngay trên máy bạn</span>
-		</div>
-	</section>
-
 	<section class="buoc-lam">
-		<h2>Dùng thế nào?</h2>
+		<h2>Bắt đầu trong 3 bước</h2>
 		<ol>
 			<li class="the">
 				<span class="so">1</span>
 				<Camera size={26} />
 				<h3>Bật camera</h3>
-				<p>Ngồi lùi ra một chút cho thấy từ đầu đến bụng, đủ sáng phía trước mặt.</p>
+				<p>Ngồi lùi ra một chút để camera thấy bạn từ đầu đến bụng, với ánh sáng phía trước mặt.</p>
 			</li>
 			<li class="the">
 				<span class="so">2</span>
 				<Hand size={26} />
 				<h3>Giơ tay lên và ký</h3>
-				<p>Không cần bấm nút: Mèo tự biết lúc bạn bắt đầu và lúc hạ tay xuống.</p>
+				<p>Không cần bấm nút. Mèo tự biết lúc bạn bắt đầu ký và lúc bạn hạ tay xuống.</p>
 			</li>
 			<li class="the">
 				<span class="so">3</span>
 				<Sparkles size={26} />
-				<h3>Xem Mèo nói gì</h3>
-				<p>Từ đoán được kèm độ chắc chắn; khi học, Mèo chỉ ra chỗ nên sửa.</p>
+				<h3>Xem kết quả</h3>
+				<p>Mèo hiện từ đoán được và mức độ chắc chắn. Khi học, Mèo chỉ ra chỗ nên sửa.</p>
 			</li>
 		</ol>
 	</section>
 
+	<h2 class="tieu-de-muc">Bạn có thể làm gì với VSLink?</h2>
 	<section class="tinh-nang">
 		{#each TINH_NANG as t (t.href)}
 			<a class="the o-tinh-nang" href="{base}{t.href}" data-mau={t.mau}>
@@ -150,24 +143,29 @@
 		<div class="the meo-nhin-ro">
 			<h2><Lightbulb size={22} /> Để Mèo nhìn rõ</h2>
 			<ul>
-				<li><b>Ánh sáng phía trước mặt</b>, tránh ngồi quay lưng ra cửa sổ.</li>
-				<li><b>Thấy từ đầu đến bụng</b>, cả hai khuỷu tay nằm trong khung hình.</li>
-				<li><b>Bắt đầu và kết thúc với tay hạ xuống</b> — Mèo dựa vào đó để cắt đúng đoạn ký.</li>
-				<li><b>Ký rõ, không quá nhanh</b>, như đang ký cho người mới học xem.</li>
+				<li><b>Ánh sáng phía trước mặt.</b> Tránh ngồi quay lưng ra cửa sổ.</li>
+				<li><b>Thấy từ đầu đến bụng.</b> Cả hai khuỷu tay nằm trong khung hình.</li>
+				<li><b>Bắt đầu và kết thúc với tay hạ xuống.</b> Mèo dựa vào đó để biết bạn ký xong một từ.</li>
+				<li><b>Ký rõ và không quá nhanh</b>, như đang ký cho người mới học xem.</li>
 			</ul>
 		</div>
-		<div class="the minh-bach">
-			<h2><ShieldCheck size={22} /> Mèo làm việc minh bạch</h2>
-			<p>
-				Đúng hay sai là do <b>mô hình nhận dạng</b> quyết định (mô hình SPOTER — Boháček &amp; Hrúz, WACV Workshops
-				2022 — huấn luyện trên bộ VSL400, nhận dạng dáng người bằng MediaPipe Holistic). AI (Gemini) chỉ giúp Mèo
-				<b>diễn đạt lại</b> các số đo cho dễ hiểu.
-			</p>
-			<p>
-				Mô hình học từ video quay chuẩn; ở nhà ánh sáng và góc máy khác nên Mèo vẫn có thể nhầm — vì vậy Mèo luôn cho
-				xem 5 khả năng chứ không chỉ một.
-			</p>
-			<a href="{base}/kiem-tra/">Tự kiểm tra máy của bạn →</a>
+		<div class="ve-nhom">
+			<a class="the o-lien-ket" href="{base}/gioi-thieu/">
+				<span class="bieu-tuong" data-mau="xanh"><Users size={24} /></span>
+				<span>
+					<b>Về dự án VSLink</b>
+					<small>Nhóm thực hiện, cách VSLink hoạt động và độ chính xác.</small>
+				</span>
+				<ArrowRight size={18} />
+			</a>
+			<a class="the o-lien-ket" href="{base}/gop-y/">
+				<span class="bieu-tuong" data-mau="hong"><MessageCircleHeart size={24} /></span>
+				<span>
+					<b>Góp ý cho nhóm</b>
+					<small>Mèo đoán sai, gặp lỗi hay có ý tưởng mới? Nhóm luôn muốn nghe.</small>
+				</span>
+				<ArrowRight size={18} />
+			</a>
 		</div>
 	</section>
 </div>
@@ -325,36 +323,6 @@
 			display: none;
 		}
 	}
-	.so-lieu {
-		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-		gap: 14px;
-		margin-bottom: 40px;
-	}
-	@media (max-width: 860px) {
-		.so-lieu {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-	}
-	.so-lieu div {
-		display: grid;
-		gap: 4px;
-		padding: 18px;
-		border-radius: var(--bo);
-		background: var(--the);
-		border: 1px solid var(--vien);
-	}
-	.so-lieu b {
-		font-size: clamp(1.8rem, 3.6vw, 2.4rem);
-		font-weight: 900;
-		color: var(--xanh);
-		line-height: 1.1;
-	}
-	.so-lieu span {
-		font-size: 0.9rem;
-		color: var(--chu-phu);
-		font-weight: 650;
-	}
 	.buoc-lam {
 		margin-bottom: 40px;
 	}
@@ -394,7 +362,7 @@
 	}
 	.tinh-nang {
 		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: 16px;
 		margin-bottom: 40px;
 	}
@@ -477,7 +445,7 @@
 		gap: 8px;
 		font-size: 1.3rem;
 	}
-	.hai-cot h2 :global(svg) {
+	.meo-nhin-ro h2 :global(svg) {
 		color: var(--xanh);
 	}
 	.meo-nhin-ro ul {
@@ -487,14 +455,67 @@
 		gap: 8px;
 		color: var(--chu-phu);
 	}
-	.meo-nhin-ro b,
-	.minh-bach b {
+	.meo-nhin-ro b {
 		color: var(--chu);
 	}
-	.minh-bach p {
+	.rieng-tu {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin: 16px 0 0;
 		color: var(--chu-phu);
+		font-weight: 700;
+		font-size: 0.95rem;
 	}
-	.minh-bach a {
-		font-weight: 800;
+	.rieng-tu :global(svg) {
+		flex: none;
+		color: var(--xanh-la-chu);
+	}
+	.tieu-de-muc {
+		margin-bottom: 16px;
+	}
+	.ve-nhom {
+		display: grid;
+		gap: 16px;
+		align-content: start;
+	}
+	.o-lien-ket {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+		color: var(--chu);
+		text-decoration: none;
+		transition: border-color 0.15s ease;
+	}
+	.o-lien-ket:hover {
+		border-color: var(--xanh);
+	}
+	.o-lien-ket > span:nth-child(2) {
+		display: grid;
+		gap: 2px;
+		flex: 1;
+	}
+	.o-lien-ket small {
+		color: var(--chu-phu);
+		font-size: 0.92rem;
+	}
+	.o-lien-ket > :global(svg) {
+		color: var(--xanh-chu);
+		flex: none;
+	}
+	.o-lien-ket .bieu-tuong {
+		flex: none;
+	}
+	[data-mau='tim'] .bieu-tuong {
+		background: color-mix(in srgb, #8b6be0 16%, var(--the));
+		color: #8b6be0;
+	}
+	.bieu-tuong[data-mau='xanh'] {
+		background: var(--xanh-nhat);
+		color: var(--xanh);
+	}
+	.bieu-tuong[data-mau='hong'] {
+		background: color-mix(in srgb, var(--hong) 16%, var(--the));
+		color: var(--hong);
 	}
 </style>

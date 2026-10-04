@@ -75,12 +75,15 @@
 <footer class="chan-trang">
 	<div class="khung-trang">
 		<p>
-			<strong>VSLink</strong> · Dịch và học Ngôn ngữ Ký hiệu Việt Nam · Hình ảnh camera được xử lý
-			<strong>ngay trên máy bạn</strong>, không gửi đi đâu.
+			<strong>VSLink</strong> · Dịch thuật và học Ngôn ngữ Ký hiệu Việt Nam · Hình ảnh camera được xử lý trực tiếp trên máy
+			bạn
+		</p>
+		<p class="lien-ket">
+			<a href="{base}/gioi-thieu/">Về dự án</a>
+			<a href="{base}/gop-y/">Góp ý</a>
 		</p>
 		<p class="nho">
-			Mô hình SPOTER huấn luyện trên bộ dữ liệu VSL400 · Video mẫu: Từ điển Ngôn ngữ ký hiệu, dự án
-			QIPEDC (Bộ GD&ĐT) · <a href="{base}/kiem-tra/">Kiểm tra hệ thống</a>
+			Một dự án của học sinh Trường Phổ thông Năng khiếu, ĐHQG-HCM
 		</p>
 	</div>
 </footer>
@@ -171,6 +174,13 @@
 		padding: 22px 0 28px;
 		color: var(--chu-phu);
 		font-size: 0.92rem;
+	}
+	.lien-ket {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 18px;
+		margin: 0 0 8px;
+		font-weight: 800;
 	}
 	.chan-trang .nho {
 		font-size: 0.82rem;
