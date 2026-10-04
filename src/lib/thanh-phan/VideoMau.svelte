@@ -122,7 +122,7 @@
 	{/if}
 	{#if hienTai}
 		<p class="nguon">
-			{hienTai.nguon === 'cu' ? 'Video mẫu' : 'Video mẫu: Từ điển Ngôn ngữ ký hiệu — dự án QIPEDC, Bộ GD&ĐT'}{hienTai.mien
+			{hienTai.nguon === 'cu' ? 'Video mẫu' : 'Video mẫu: Từ điển Ngôn ngữ ký hiệu, dự án QIPEDC, Bộ GD&ĐT'}{hienTai.mien
 				? ` · Ký hiệu ${TEN_MIEN[hienTai.mien]}`
 				: ''}
 		</p>

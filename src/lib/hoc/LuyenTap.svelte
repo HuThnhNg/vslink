@@ -58,7 +58,7 @@
 			probs = await chayMoHinh(taoBatchCheBot(noiSuy(khung)));
 		} catch (e) {
 			console.error(e);
-			loiCham = 'Mèo không chạy được mô hình nhận dạng (có thể do mạng yếu khi tải lần đầu). Tải lại trang rồi thử nhé.';
+			loiCham = 'Mèo chưa sẵn sàng nhận dạng, có thể do mạng yếu khi tải lần đầu. Tải lại trang rồi thử nhé.';
 			return;
 		}
 		if (id !== dem || muc.i !== tu.i) return; // da doi tu trong luc cham
@@ -179,7 +179,7 @@
 					{#key ketQua.id}
 						<div class="phu-de-cam" data-muc={ketQua.duKien.mucDo} in:fly={{ y: 16, duration: 250 }}>
 							{#if ketQua.duKien.mucDo === 'dung'}Đúng rồi!
-							{:else if ketQua.duKien.mucDo === 'gan-dung'}Gần đúng · hạng {ketQua.duKien.xepHang}
+							{:else if ketQua.duKien.mucDo === 'gan-dung'}Gần đúng · Mèo phân vân với “{ketQua.duKien.tuDoan}”
 							{:else}Chưa đúng · Mèo thấy giống “{ketQua.duKien.tuDoan}”{/if}
 						</div>
 					{/key}
@@ -196,9 +196,9 @@
 					{#if d.mucDo === 'dung'}
 						<Star size={22} /> Đúng rồi! <small>Mèo chắc {phanTram(d.xacSuat)}</small>
 					{:else if d.mucDo === 'gan-dung'}
-						<Sparkles size={22} /> Gần đúng <small>“{d.tuMucTieu}” xếp hạng {d.xepHang}/400</small>
+						<Sparkles size={22} /> Gần đúng <small>“{d.tuMucTieu}” nằm trong 5 từ Mèo nghĩ tới</small>
 					{:else}
-						<Target size={22} /> Chưa đúng <small>“{d.tuMucTieu}” xếp hạng {d.xepHang}/400</small>
+						<Target size={22} /> Chưa đúng <small>Mèo thấy giống “{d.tuDoan}” hơn</small>
 					{/if}
 				</div>
 				<BongMeo {tamTrang} dangNghi={!ketQua.loiMeo} cau={ketQua.loiMeo?.cau ?? ''} nguon={ketQua.loiMeo?.nguon ?? null} />
@@ -224,11 +224,11 @@
 					<summary>Mèo nhìn thấy gì?</summary>
 					<div class="hai-cot">
 						<div>
-							<h3>5 từ mô hình nghĩ tới</h3>
+							<h3>5 từ Mèo nghĩ tới</h3>
 							<Top5 ds={ketQua.top} mucTieu={{ i: tu.i, tu: tu.tu, hang: d.xepHang, p: d.xacSuat }} />
 						</div>
 						<div>
-							<h3>Bộ phận nào khác mẫu?</h3>
+							<h3>Phần nào khác mẫu?</h3>
 							<BoPhan duKien={d} />
 						</div>
 					</div>
@@ -253,22 +253,18 @@
 				<summary><CircleQuestionMark size={16} /> Mèo chấm thế nào?</summary>
 				<ul>
 					<li>
-						<b>Đúng</b>: mô hình xếp “{tu.tu}” <b>hạng 1</b> trong 400 từ. <b>Gần đúng</b>: hạng 2–5.
-						<b>Chưa đúng</b>: hạng 6 trở xuống.
+						<b>Đúng:</b> Mèo nhận ra “{tu.tu}” ngay lần đầu. <b>Gần đúng:</b> “{tu.tu}” nằm trong 5 từ Mèo nghĩ tới.
+						<b>Chưa đúng:</b> Mèo chưa nhận ra.
 					</li>
 					<li>
-						<b>Bộ phận / đoạn khác mẫu</b>: Mèo lần lượt che bàn tay trái, bàn tay phải, cánh tay, và cho “đứng hình”
-						từng đoạn đầu/giữa/cuối, rồi chạy lại mô hình. Che một phần mà mô hình lại nhận ra “{tu.tu}” rõ hơn → phần
-						đó đang khác mẫu (phương pháp che bớt — Zeiler &amp; Fergus, ECCV 2014).
+						<b>Bàn tay hay đoạn nào khác mẫu:</b> Mèo thử che lần lượt bàn tay trái, bàn tay phải, cánh tay, và từng đoạn
+						đầu, giữa, cuối của động tác. Che phần nào mà Mèo lại nhận ra “{tu.tu}” rõ hơn thì phần đó đang khác mẫu.
 					</li>
 					<li>
-						<b>Lời nhận xét</b>: AI (Gemini) chỉ diễn đạt lại các số đo trên cho dễ hiểu, không tự chấm đúng/sai.
-						Không có mạng thì Mèo dùng lời soạn sẵn.
+						Với video quay chuẩn, Mèo đoán đúng khoảng 9 trên 10 lần. Ở nhà, ánh sáng và góc máy khác nên Mèo có thể nhầm
+						nhiều hơn.
 					</li>
-					<li>
-						Mô hình đoán đúng khoảng 9/10 lần trên tập kiểm tra VSL400 (video quay chuẩn, người ký chưa gặp khi huấn
-						luyện). Với camera ở nhà có thể thấp hơn, nên hãy xem thêm 5 từ Mèo nghĩ tới.
-					</li>
+					<li><a href="{base}/gioi-thieu/">Tìm hiểu thêm về cách VSLink hoạt động</a></li>
 				</ul>
 			</details>
 		</section>

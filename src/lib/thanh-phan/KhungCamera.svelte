@@ -38,7 +38,7 @@
 		'dang-cham': 'Mèo đang đoán…',
 		nghi: 'Xong! Nghỉ chút nha'
 	};
-	const loiPha = $derived(phien.pha === 'cho' ? (th?.coNguoi ? goiY : 'Ngồi xa camera hơn chút — Mèo cần thấy cả hai vai và hai tay') : LOI_PHA[phien.pha]);
+	const loiPha = $derived(phien.pha === 'cho' ? (th?.coNguoi ? goiY : 'Ngồi xa camera hơn chút để Mèo thấy cả hai vai và hai tay') : LOI_PHA[phien.pha]);
 
 	function bat() {
 		phien.batDau(video, canvas, { giaLap });
@@ -50,7 +50,7 @@
 	});
 </script>
 
-<div class="o-camera" style:aspect-ratio={tiLe} data-pha={phien.pha} data-trang-thai={phien.trangThai}>
+<div class="o-camera" class:cho-bat={!dangChay} style:aspect-ratio={tiLe} data-pha={phien.pha} data-trang-thai={phien.trangThai}>
 	<video bind:this={video} class:an={giaLap} muted playsinline aria-label="Hình từ camera của bạn (hiển thị kiểu gương)"></video>
 	<canvas bind:this={canvas} class:gia-lap={giaLap}></canvas>
 
@@ -82,7 +82,7 @@
 				<p>Đang mở camera… Nếu trình duyệt hỏi, bấm <strong>Cho phép</strong> nhé.</p>
 			{:else if phien.trangThai === 'dang-nap'}
 				<Meo tamTrang="suy-nghi" kichThuoc={96} />
-				<p>Mèo đang tải mô hình nhìn dáng người… Lần đầu hơi lâu (vài chục giây nếu mạng chậm), lần sau nhanh thôi.</p>
+				<p>Mèo đang tải bộ nhận dáng người… Lần đầu hơi lâu (vài chục giây nếu mạng chậm), lần sau nhanh thôi.</p>
 			{:else if phien.trangThai === 'loi'}
 				<Meo tamTrang="boi-roi" kichThuoc={96} />
 				<p class="loi">{phien.loi}</p>
@@ -122,6 +122,18 @@
 		border: 1px solid var(--vien);
 		box-shadow: var(--bong);
 		isolation: isolate;
+	}
+	/* chua bat camera: khung 16:9 tren dien thoai qua thap, chu va nut bi cat -> bo ti le, dat chieu cao toi thieu
+	   (giu ti le + min-height se lam khung rong ra ngoai man hinh) */
+	@media (max-width: 640px) {
+		.o-camera.cho-bat {
+			aspect-ratio: auto !important;
+			min-height: 300px;
+		}
+	}
+	/* nen toi cua che do gia lap chi khi dang chay: chua bat thi chu tren nen sang van doc ro */
+	.o-camera.cho-bat canvas.gia-lap {
+		background: none;
 	}
 	video,
 	canvas {
@@ -237,6 +249,10 @@
 		display: flex;
 		justify-content: center;
 		pointer-events: none;
+	}
+	.lop-duoi :global(button),
+	.lop-duoi :global(a) {
+		pointer-events: auto;
 	}
 	.nut-tat {
 		position: absolute;

@@ -119,7 +119,7 @@ export class PhienCamera {
 		} catch {
 			this.dung();
 			this.trangThai = 'loi';
-			this.loi = 'Không tải được mô hình nhận dạng dáng người (MediaPipe). Kiểm tra kết nối mạng rồi bấm thử lại nhé.';
+			this.loi = 'Không tải được bộ nhận dáng người. Kiểm tra kết nối mạng rồi bấm Thử lại nhé.';
 			return;
 		}
 		if (this.trangThai !== 'dang-nap') return; // da bi tat trong luc cho

@@ -172,7 +172,7 @@
 				c.soLan++;
 			} catch (e) {
 				console.error(e);
-				thongBao = 'Mèo không chạy được mô hình nhận dạng. Tải lại trang rồi thử nhé.';
+				thongBao = 'Mèo chưa sẵn sàng nhận dạng, có thể do mạng yếu. Tải lại trang rồi thử nhé.';
 			} finally {
 				dangCham = false;
 			}
@@ -250,24 +250,24 @@
 				disabled={!daNapVideo || nguonXem.length < 4}
 			>
 				<span class="bieu-tuong xanh"><Eye size={28} /></span>
-				<h2>Xem ký hiệu — đoán nghĩa</h2>
-				<p class="phu-de">Xem video mẫu, chọn nghĩa đúng trong 4 đáp án. {SO_CAU.xem} câu, đáp án nhiễu cùng chủ đề.</p>
+				<h2>Xem ký hiệu, đoán nghĩa</h2>
+				<p class="phu-de">Xem video mẫu rồi chọn nghĩa đúng trong 4 đáp án. Mỗi lượt có {SO_CAU.xem} câu.</p>
 				{#if daNapVideo && nguonXem.length < 4}
 					<p class="tam-khoa" data-testid="xem-tam-khoa">
 						Nhóm đang duyệt lại video mẫu cho đúng cách ký ({coVideo.length}/400 từ đã xong). Quay lại sau nhé!
 					</p>
 				{:else if daNapVideo && coVideoChuDe.length < 4 && chuDe !== 'tat-ca'}
-					<p class="tam-khoa">Chủ đề này chưa đủ video đã duyệt — Mèo lấy từ mọi chủ đề.</p>
+					<p class="tam-khoa">Chủ đề này chưa đủ video mẫu, nên Mèo sẽ hỏi từ ở mọi chủ đề.</p>
 				{:else}
 					<span class="nut">Chơi ngay <ArrowRight size={18} /></span>
 				{/if}
 			</button>
 			<button class="the kieu" onclick={() => batDau('ky')} data-testid="choi-ky">
 				<span class="bieu-tuong cam"><Hand size={28} /></span>
-				<h2>Thấy chữ — tự ký</h2>
+				<h2>Thấy chữ, tự ký</h2>
 				<p class="phu-de">
-					Mèo đưa một từ, bạn ký trước camera, mô hình chấm. {SO_CAU.ky} câu, ưu tiên từ đến hạn ôn. Kết quả được ghi vào
-					tiến độ.
+					Mèo đưa ra một từ, bạn ký lại trước camera. Mỗi lượt có {SO_CAU.ky} câu, ưu tiên những từ bạn sắp quên. Kết quả
+					được ghi vào tiến độ.
 				</p>
 				<span class="nut">Chơi ngay <ArrowRight size={18} /></span>
 			</button>
@@ -325,7 +325,7 @@
 								kichThuoc={84}
 								cau={cau.chon === cau.tu.i
 									? 'Chuẩn luôn! Mắt tinh ghê.'
-									: `Chưa đúng rồi — đây là “${cau.tu.tu}”. Xem lại video một lần nữa cho nhớ nha.`}
+									: `Chưa đúng rồi, đây là “${cau.tu.tu}”. Xem lại video một lần nữa cho nhớ nha.`}
 							/>
 							<div class="nut-ds">
 								<button class="nut" onclick={cauTiep} data-testid="cau-tiep">
@@ -360,7 +360,7 @@
 					<BongMeo {tamTrang} kichThuoc={84} dangNghi={dangCham}>
 						<p data-testid="phan-hoi-ky">
 							{#if cau.ket === 'dung'}Đúng rồi! Mèo nhận ra “{cau.tu.tu}” ngay.
-							{:else if cau.ket === 'gan-dung'}Gần đúng — “{cau.tu.tu}” xếp hạng {cau.hang}, Mèo nghiêng về “{cau.tuDoan}”.
+							{:else if cau.ket === 'gan-dung'}Gần đúng rồi! Mèo thấy hơi giống “{cau.tuDoan}” hơn một chút.
 							{:else if cau.ket === 'chua-dung'}Mèo thấy giống “{cau.tuDoan}” hơn. Thử lại hoặc xem gợi ý nhé.
 							{:else if thongBao}{thongBao}
 							{:else}Ký từ này trước camera, ký xong hạ tay xuống nhé!{/if}

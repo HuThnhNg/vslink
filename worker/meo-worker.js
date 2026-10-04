@@ -10,6 +10,9 @@
 //   ALLOWED_ORIGINS  (tuy chon)          vd "https://ten-ban.github.io" — chi web cua
 //                                        ban goi duoc; bo trong = cho moi noi goi
 //   GEMINI_MODEL     (tuy chon)          model uu tien; khong co thi thu lan luot DS_MODEL
+//   GOP_Y_URL        (Secret, tuy chon)  dia chi Web App cua Google Apps Script nhan gop y
+//                                        (worker/gop-y-apps-script.gs) — khong co thi tat gop y
+//   GOP_Y_KHOA       (Secret, tuy chon)  chuoi bi mat, trung voi KHOA trong Apps Script
 //
 // Worker chi nhan DU KIEN do web do san (xep hang, bo phan lech...), kiem tung
 // truong, tu phai nam trong 400 tu cua VSL400 -> khong ai dung key nay lam chatbot
@@ -210,6 +213,44 @@ function docCau(text, viTri) {
   return { cau: lamSach(j.cau).slice(0, 300), chon };
 }
 
+// =============================================================================
+// Gop y: web gui {"loai":"gop-y", ...} -> Worker kiem tra tung truong -> chuyen tiep
+// sang Google Apps Script (ghi vao Google Sheet cua nhom). Chi nhan CHU, khong nhan hinh.
+// Dia chi Apps Script + khoa nam trong Secret cua Worker, nguoi ngoai khong goi thang duoc.
+// =============================================================================
+const LOAI_GOP_Y = new Set(['doan-sai', 'cau-sai', 'loi-web', 'de-xuat', 'khac']);
+const TRANG_GOP_Y = new Set(['', 'dich', 'ghep-cau', 'hoc', 'do-vui', 'tien-do', 'gop-y', 'khac']);
+const chuoi = (x, toiDa) => (typeof x === 'string' ? x.replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, '').trim().slice(0, toiDa) : '');
+const luotGopY = new Map(); // ip -> [thoi diem...] (moi isolate mot ban, du de chan spam don gian)
+
+function kiemGopY(d) {
+  if (!d || typeof d !== 'object') return null;
+  if (chuoi(d.web, 50)) return null; // o bay: nguoi that khong dien
+  const noiDung = chuoi(d.noi_dung, 2000);
+  if (!LOAI_GOP_Y.has(d.the_loai) || noiDung.length < 3) return null;
+  const nc = d.ngu_canh && typeof d.ngu_canh === 'object' ? d.ngu_canh : {};
+  const tu = (x) => (typeof x === 'string' && NHAN.has(x) ? x : null);
+  return {
+    the_loai: d.the_loai,
+    noi_dung: noiDung,
+    dung_ra: chuoi(d.dung_ra, 200),
+    lien_he: chuoi(d.lien_he, 200),
+    nguoi_diec: d.nguoi_diec === true,
+    trang: TRANG_GOP_Y.has(nc.trang) ? nc.trang : 'khac',
+    tu_doan: Array.isArray(nc.tu_doan) ? nc.tu_doan.slice(0, 12).map(tu).filter(Boolean) : [],
+    cau: chuoi(nc.cau, 300),
+    trinh_duyet: chuoi(d.trinh_duyet, 200)
+  };
+}
+
+function quaNhieuLuot(ip, now = Date.now()) {
+  const ds = (luotGopY.get(ip) || []).filter((t) => now - t < 10 * 60 * 1000);
+  ds.push(now);
+  luotGopY.set(ip, ds);
+  if (luotGopY.size > 5000) luotGopY.clear();
+  return ds.length > 5;
+}
+
 export default {
   async fetch(req, env) {
     const nguon = req.headers.get('Origin') || '';
@@ -226,12 +267,11 @@ export default {
       new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8' } });
 
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-    if (req.method === 'GET') return tra({ meo: 'Gâu! Mèo đây.', co_key: Boolean(env.GEMINI_API_KEY) });
+    if (req.method === 'GET') return tra({ meo: 'Gâu! Mèo đây.', co_key: Boolean(env.GEMINI_API_KEY), co_gop_y: Boolean(env.GOP_Y_URL && env.GOP_Y_KHOA) });
     if (req.method !== 'POST') return tra({ loi: 'chi nhan POST' }, 405);
     if (!hopLe) return tra({ loi: 'nguon khong duoc phep' }, 403);
-    if (!env.GEMINI_API_KEY) return tra({ loi: 'Worker chua co GEMINI_API_KEY' }, 500);
     const than = await req.text();
-    if (than.length > 4000) return tra({ loi: 'du lieu qua lon' }, 413);
+    if (than.length > 6000) return tra({ loi: 'du lieu qua lon' }, 413);
     let yeuCau;
     try {
       yeuCau = JSON.parse(than);
@@ -240,7 +280,10 @@ export default {
     }
 
     // ---- Ghep cau: day top-3 cua tung tu -> mot cau tieng Viet ----
+    const canKey = () => (env.GEMINI_API_KEY ? null : tra({ loi: 'Worker chua co GEMINI_API_KEY' }, 500));
+
     if (yeuCau?.loai === 'cau') {
+      if (canKey()) return canKey();
       const viTri = kiemCau(yeuCau);
       if (!viTri) return tra({ loi: 'day tu khong hop le' }, 400);
       const kq = await goiGemini(env, {
@@ -254,7 +297,29 @@ export default {
       return tra({ ...cau, model: kq.model });
     }
 
+    // ---- Gop y cua nguoi dung -> Google Sheet cua nhom ----
+    if (yeuCau?.loai === 'gop-y') {
+      if (!env.GOP_Y_URL || !env.GOP_Y_KHOA) return tra({ loi: 'Worker chua cai dat gop y (GOP_Y_URL, GOP_Y_KHOA)' }, 503);
+      const g = kiemGopY(yeuCau);
+      if (!g) return tra({ loi: 'gop y khong hop le' }, 400);
+      if (quaNhieuLuot(req.headers.get('CF-Connecting-IP') || 'khong-ro')) return tra({ loi: 'gui qua nhieu, thu lai sau' }, 429);
+      try {
+        const r = await fetch(env.GOP_Y_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ khoa: env.GOP_Y_KHOA, ...g }),
+          redirect: 'follow'
+        });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || !j.ok) return tra({ loi: `Apps Script tra loi ${r.status}${j.loi ? ': ' + j.loi : ''}` }, 502);
+      } catch (e) {
+        return tra({ loi: 'khong goi duoc Apps Script' }, 502);
+      }
+      return tra({ ok: true });
+    }
+
     // ---- Meo nhan xet mot lan ky ----
+    if (canKey()) return canKey();
     let duKien;
     try {
       duKien = kiemDuKien(yeuCau?.du_kien);

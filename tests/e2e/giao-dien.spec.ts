@@ -7,6 +7,8 @@ const TRANG = [
 	{ duong: 'hoc/', ten: 'hoc', chu: 'Thư viện 400 từ' },
 	{ duong: 'do-vui/', ten: 'do-vui', chu: 'Thử tài cùng Mèo' },
 	{ duong: 'tien-do/', ten: 'tien-do', chu: 'Hành trình của bạn' },
+	{ duong: 'gioi-thieu/', ten: 'gioi-thieu', chu: 'VSLink là gì?' },
+	{ duong: 'gop-y/', ten: 'gop-y', chu: 'Nhóm VSLink luôn muốn nghe bạn' },
 	{ duong: 'kiem-tra/', ten: 'kiem-tra', chu: 'Mô hình nhận dạng' }
 ];
 

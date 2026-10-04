@@ -38,7 +38,7 @@ describe('Meo noi bang loi soan san', () => {
 		const y = cacY(duKien({ boPhan: { tayTrai: 'khong-thay', tayPhai: 'lech-nhieu', canhTay: 'on' } }));
 		expect(y[0]).toContain('bàn tay phải');
 		expect(y[1]).toContain('ít thấy bàn tay trái');
-		expect(y[1]).toContain('nếu từ này cần tay đó');
+		expect(y[1]).toContain('Nếu từ này cần tay đó');
 	});
 	it('dung roi thi khong nhac tay it thay', () => {
 		const d = duKien({ mucDo: 'dung', xepHang: 1, xacSuat: 0.7, tuDoan: 'Mẹ', boPhan: { tayTrai: 'khong-thay', tayPhai: 'on', canhTay: 'on' }, giaiDoanLechNhat: null });

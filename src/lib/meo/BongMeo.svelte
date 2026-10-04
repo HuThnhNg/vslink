@@ -1,6 +1,7 @@
 <!--
 	Meo + bong noi. Noi dung: `cau` (chu) hoac children (tu soan). dangNghi = ba cham nhay.
-	nguon: 'ai' | 'mau' -> ghi chu nho de nguoi hoc biet cau nhan xet den tu dau.
+	nguon: 'ai' | 'mau' -> chi ghi vao data-nguon (kiem thu, nghien cuu); KHONG hien cho nguoi dung:
+	nguoi dung can loi nhan xet, khong can biet do AI hay loi soan san.
 -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
@@ -33,13 +34,6 @@
 			{@render children()}
 		{:else}
 			<p data-testid="loi-meo" data-nguon={nguon ?? ''}>{cau}</p>
-		{/if}
-		{#if nguon && !dangNghi}
-			<small class="nguon">
-				{nguon === 'ai'
-					? 'Mèo diễn đạt bằng AI (Gemini) từ số đo của mô hình — đúng/sai do mô hình chấm.'
-					: 'Lời Mèo soạn sẵn từ số đo của mô hình.'}
-			</small>
 		{/if}
 	</div>
 </div>
@@ -80,13 +74,6 @@
 	}
 	.bong :global(p) {
 		margin: 0;
-	}
-	.nguon {
-		display: block;
-		margin-top: 6px;
-		font-size: 0.76rem;
-		font-weight: 650;
-		color: var(--chu-phu);
 	}
 	.dang-nghi {
 		display: inline-flex;

@@ -10,7 +10,7 @@
 	const TEN: Record<Phan, string> = {
 		tayTrai: 'Bàn tay trái',
 		tayPhai: 'Bàn tay phải',
-		canhTay: 'Vị trí & đường đi của tay'
+		canhTay: 'Vị trí và đường đi của tay'
 	};
 	const NHAN: Record<DanhGiaPhan, string> = {
 		khop: 'Giống mẫu',
@@ -39,7 +39,7 @@
 			{/each}
 		</div>
 		{#if !duKien.giaiDoanLechNhat}
-			<small>{duKien.mucDo === 'dung' ? 'Không có — cả động tác đều ổn.' : 'Không có đoạn nào nổi bật hẳn.'}</small>
+			<small>{duKien.mucDo === 'dung' ? 'Không có. Cả động tác đều ổn.' : 'Không có đoạn nào nổi bật hẳn.'}</small>
 		{/if}
 	</div>
 </div>
