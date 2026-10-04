@@ -63,7 +63,7 @@
 				</li>
 			{/each}
 		</ul>
-		<h3>Cảm ơn</h3>
+		<h3>Acknowledgements</h3>
 		<p class="phu-de">
 			Chân thành gửi lời cảm ơn đến hai bạn đã tham gia hỗ trợ chúng tôi trong quá trình nghiên cứu:
 		</p>
