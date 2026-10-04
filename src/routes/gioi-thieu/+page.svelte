@@ -65,7 +65,7 @@
 		</ul>
 		<h3>Cảm ơn</h3>
 		<p class="phu-de">
-			Nhóm cảm ơn hai bạn đã đồng hành và hỗ trợ trong giai đoạn đầu xây dựng mô hình nhận dạng ký hiệu:
+			Chân thành gửi lời cảm ơn đến hai bạn đã tham gia hỗ trợ chúng tôi trong quá trình nghiên cứu:
 		</p>
 		<ul class="ds-nguoi nho">
 			{#each HO_TRO as n (n.ten)}
