@@ -5,6 +5,7 @@ import { anh, chuanBi, coVideoMau, VIDEO_GIA } from './chung';
 
 test('chua co video da duyet: Hoc bao dang duyet, Do vui "xem" tam khoa', async ({ page }) => {
 	const loi = await chuanBi(page);
+	await coVideoMau(page, {}); // du lieu that da co video duyet, gia lap luc chua co
 	await page.goto('hoc/?tu=40');
 	await expect(page.getByTestId('tu-dang-tap')).toHaveText('Cháu');
 	await expect(page.getByText('đang được nhóm duyệt lại')).toBeVisible();

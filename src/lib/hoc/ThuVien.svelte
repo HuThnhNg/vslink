@@ -43,6 +43,7 @@
 			if (loc === 'chua-hoc') return !b;
 			return true;
 		})
+		.sort((a, b) => a.tu.localeCompare(b.tu, 'vi'))
 	);
 	const dauOn = $derived(tienDo.canOn()[0]);
 	const hauTo = $derived(giaLap ? '&gia-lap=1' : '');
@@ -60,7 +61,7 @@
 			<p class="nhan-nho">Học tập</p>
 			<h1>Thư viện 400 từ</h1>
 			<p class="phu-de">
-				Chọn một từ → xem video mẫu → ký lại trước camera. Mèo chấm bằng mô hình nhận dạng và chỉ ra chỗ nên sửa.
+				Chọn một từ, xem video mẫu rồi ký lại trước camera. Mèo chấm từng lần và chỉ ra chỗ nên sửa.
 			</p>
 			<div class="hanh-dong">
 				{#if dauOn !== undefined}
@@ -75,7 +76,7 @@
 			<BongMeo tamTrang={tienDo.soDaThuoc ? 'vui' : 'cho'} kichThuoc={78}>
 				<p>
 					{#if tienDo.soDaTap === 0}
-						Chưa học từ nào — bắt đầu với chủ đề <b>Gia đình</b> nhé!
+						Bạn chưa học từ nào. Bắt đầu với chủ đề <b>Gia đình</b> nhé!
 					{:else}
 						Bạn đã thuộc <b>{tienDo.soDaThuoc}</b> từ, đang tập <b>{tienDo.soDaTap - tienDo.soDaThuoc}</b> từ.
 					{/if}

@@ -17,11 +17,13 @@ Web nhận dạng **400 từ** Ngôn ngữ Ký hiệu Việt Nam qua camera, ch�
 | Mục | Làm được gì |
 | --- | --- |
 | **Dịch** | Ký trước camera — web **tự biết lúc bắt đầu và kết thúc** (giơ tay lên → ký → hạ tay), không cần bấm nút. Hiện từ đoán ngay trên khung camera, 5 khả năng kèm %, cảnh báo "chưa chắc" khi xác suất thấp, lý do khi không chấm (ký quá ngắn, gần như đứng yên…). Có thể **tải video lên** (kể cả video quay kiểu soi gương). |
-| **Ghép câu** (thử nghiệm) | Bật công tắc *Ghép câu* trên trang Dịch, ký từng từ (hạ tay giữa các từ): Mèo gom top-3 của mỗi từ rồi nhờ Gemini (qua Worker) **chọn từ hợp ngữ cảnh và đổi trật tự ký hiệu (Chủ – Tân – Động) sang câu tiếng Việt**. Không có Worker thì nối từ theo thứ tự ký. Nghiên cứu, dữ liệu và notebook: [`nghien-cuu/ghep-cau/`](nghien-cuu/ghep-cau/README.md). |
+| **Ghép câu** (thử nghiệm) | Chọn thẻ *Ghép câu* trên trang Dịch, ký từng từ (hạ tay giữa các từ): Mèo gom top-3 của mỗi từ rồi nhờ Gemini (qua Worker) **chọn từ hợp ngữ cảnh và đổi trật tự ký hiệu (Chủ – Tân – Động) sang câu tiếng Việt**. Câu hiện ngay trên khung camera; bấm vào một từ để đổi sang từ khác Mèo nghĩ tới. Không có Worker thì nối từ theo thứ tự ký. Nghiên cứu, dữ liệu và notebook: [`nghien-cuu/ghep-cau/`](nghien-cuu/ghep-cau/README.md). |
 | **Học** | Thư viện 400 từ, 19 chủ đề, tìm **không dấu**. Mỗi từ: video mẫu (chỉnh tốc độ 0,5×/0,75×, bật soi gương) + camera. Mỗi lần ký được chấm **Đúng / Gần đúng / Chưa đúng**, chỉ ra **bàn tay nào, đoạn nào khác mẫu**, rồi Mèo nhận xét. |
 | **Đố vui** | *Xem ký hiệu — đoán nghĩa* (4 đáp án cùng chủ đề) và *Thấy chữ — tự ký* (mô hình chấm). |
 | **Tiến độ** | Chuỗi ngày học, số từ đã thuộc, lịch 4 tuần, **ôn tập giãn cách** (hộp Leitner: hẹn ôn sau 1, 2, 4, 7, 15 ngày), tiến độ theo chủ đề. Lưu trên trình duyệt, không cần tài khoản. |
-| **Kiểm tra hệ thống** (`/kiem-tra/`) | So kết quả mô hình trên trình duyệt với Python, thử camera + MediaPipe, thử Mèo AI và chẩn đoán Worker. |
+| **Về dự án** (`/gioi-thieu/`) | Nhóm thực hiện, cách VSLink hoạt động, minh bạch và riêng tư, độ chính xác, giới hạn, nguồn tham khảo. |
+| **Góp ý** (`/gop-y/`) | Người dùng báo Mèo đoán sai / câu chưa đúng / lỗi web / đề xuất. Từ trang Dịch có nút *Báo cho nhóm* đính kèm sẵn kết quả vừa rồi. Góp ý về **Google Sheet của nhóm** (xem mục 3b). Có thêm phần *Gặp sự cố?* và *Tự kiểm tra camera*. |
+| **Kiểm tra hệ thống** (`/kiem-tra/`, **chỉ cho nhóm**) | So kết quả mô hình trên trình duyệt với Python, thử camera + MediaPipe, thử Mèo AI và chẩn đoán Worker. Trang này và `/cong-cu/` **không có trên web công khai**: chỉ mở được khi chạy `npm run dev`, hoặc build với `VITE_CONG_CU_NHOM=1`. |
 
 Giao diện: màu xanh logo VSLink, bo tròn, sáng/tối, dùng tốt trên điện thoại, đủ tương phản chữ theo WCAG AA.
 
@@ -80,7 +82,7 @@ Worker chạy tại chỗ bằng `wrangler dev`, key Gemini chỉ nằm trên m�
    npm run worker   # cửa sổ 1: Worker tại chỗ (lần đầu tải wrangler, khoảng 1 phút)
    npm run dev      # cửa sổ 2: web
    ```
-5. Mở http://localhost:5173/dich/, bật **Ghép câu**, bấm **Bật camera**, ký từng từ (hạ tay giữa các từ). Nghỉ 3 giây là ra câu; dòng chú thích phải ghi *"Mèo ghép bằng AI"*. Kiểm tra nhanh Worker: mở http://localhost:5173/kiem-tra/ → **Hỏi thử Mèo** → thấy *(AI)*.
+5. Mở http://localhost:5173/dich/, chọn thẻ **Ghép câu**, bấm **Bật camera**, ký từng từ (hạ tay giữa các từ). Nghỉ 3 giây là ra câu. Nếu chỉ thấy các từ nối nhau kèm dòng *"Mèo chưa sắp xếp được thành câu lúc này"* thì Worker chưa chạy hoặc chưa có key. Kiểm tra nhanh Worker: mở http://localhost:5173/kiem-tra/ → **Hỏi thử Mèo** → thấy *(AI)*.
 
 ## 2. Đưa lên GitHub Pages (miễn phí)
 
@@ -96,7 +98,7 @@ Thư mục này đã là một kho git có sẵn commit đầu tiên.
      ```
 3. Vào repo → **Settings → Pages** → *Build and deployment* → **Source: GitHub Actions**.
 4. Tab **Actions** → workflow *"Dua web len GitHub Pages"* tự chạy sau mỗi lần đẩy code (hoặc bấm *Run workflow*). Khoảng 2–3 phút sau web có ở `https://<ten-ban>.github.io/vslink/`.
-5. Mở `https://<ten-ban>.github.io/vslink/kiem-tra/` để tự kiểm tra máy của bạn.
+5. Trang `/kiem-tra/` không có trên web công khai. Người dùng tự kiểm tra camera ở `/gop-y/` → *Gặp sự cố?* → **Tự kiểm tra camera**; nhóm dùng `/kiem-tra/` khi chạy `npm run dev`.
 
 ## 3. Bật "Mèo nói bằng AI" (Gemini, miễn phí, key không bị lộ)
 
@@ -114,11 +116,24 @@ API key **không bao giờ** được nằm trong code web (ai cũng xem đượ
 5. **Báo cho web biết địa chỉ Worker** — chọn một cách:
    - Repo GitHub → *Settings → Secrets and variables → Actions* → tab **Variables** → *New repository variable*: tên `MEO_API`, giá trị = địa chỉ Worker. Chạy lại workflow.
    - Hoặc sửa thẳng tệp `static/cau-hinh.json`: `{ "meo_api": "https://vslink-meo.<ten-ban>.workers.dev" }`.
-6. Mở `/kiem-tra/` → **Hỏi thử Mèo**: thấy *(AI)* là xong. Nếu vẫn *(lời soạn sẵn)*, bấm **Kiểm tra Worker** để xem lý do (thiếu key, sai `ALLOWED_ORIGINS`, hết lượt…).
+6. Chạy `npm run dev` trên máy, mở http://localhost:5173/kiem-tra/ → **Hỏi thử Mèo**: thấy *(AI)* là xong. Nếu vẫn *(lời soạn sẵn)*, bấm **Kiểm tra Worker** để xem lý do (thiếu key, sai `ALLOWED_ORIGINS`, hết lượt…).
 
 Worker chỉ nhận dữ kiện hợp lệ (từ phải thuộc 400 từ, số nằm trong khoảng cho phép) và chỉ trả lời địa chỉ web trong `ALLOWED_ORIGINS`, nên người khác không lấy key của bạn làm chatbot được. Gói miễn phí của Gemini có giới hạn số lượt (xem trong AI Studio); hết lượt thì Mèo tạm dùng lời soạn sẵn. Lưu ý: ở gói miễn phí Google có thể dùng nội dung gửi lên để cải thiện dịch vụ — web chỉ gửi dữ kiện số, không gửi hình.
 
 Muốn dùng dòng lệnh thay vì dán code: `cd worker && npx wrangler deploy` rồi `npx wrangler secret put GEMINI_API_KEY` (sửa `ALLOWED_ORIGINS` trong `worker/wrangler.toml` trước).
+
+## 3b. Bật hệ thống góp ý (Google Sheet của nhóm)
+
+Góp ý đi: web → Worker (`{"loai":"gop-y"}`) → Google Apps Script → một dòng mới trong Google Sheet. Web không biết địa chỉ Sheet; Worker giữ địa chỉ và mã khoá bí mật. Góp ý chỉ gồm chữ người dùng viết + kết quả Mèo đoán đính kèm, **không** có hình camera.
+
+1. Tạo một Google Sheet mới (ví dụ *VSLink – Góp ý*), chia sẻ cho cả nhóm.
+2. Trong Sheet: *Tiện ích mở rộng → Apps Script* → xoá hết, dán nội dung [`worker/gop-y-apps-script.gs`](worker/gop-y-apps-script.gs). Đổi dòng `const KHOA = '...'` thành một chuỗi ngẫu nhiên dài (ví dụ 32 ký tự) → *Lưu*.
+3. *Triển khai → Triển khai mới* → loại **Ứng dụng web** → *Thực thi với tư cách*: **Tôi**; *Người có quyền truy cập*: **Bất kỳ ai** → *Triển khai* → cấp quyền → copy **URL ứng dụng web** (dạng `https://script.google.com/macros/s/.../exec`).
+4. Worker → *Settings → Variables and Secrets* → thêm hai **Secret**: `GOP_Y_URL` = URL vừa copy, `GOP_Y_KHOA` = chuỗi ở bước 2.
+5. Dán lại toàn bộ [`worker/meo-worker.js`](worker/meo-worker.js) mới vào Worker → *Deploy*. (Góp ý chạy được cả khi chưa có `GEMINI_API_KEY`.)
+6. Mở `/gop-y/`, gửi thử → thấy dòng mới trong trang tính **Góp ý**. Cột *Trạng thái* có sẵn danh sách *Mới / Đang xử lý / Đã trả lời / Đã sửa / Bỏ qua* để nhóm theo dõi.
+
+Chưa làm các bước trên thì trang góp ý báo nhẹ nhàng *"Kênh góp ý đang được nhóm cài đặt"*. Worker chặn spam bằng ô bẫy ẩn và giới hạn 5 góp ý / 10 phút cho mỗi máy. Sửa `KHOA` hay sửa code Apps Script thì phải *Triển khai → Quản lý triển khai → Chỉnh sửa → Phiên bản mới* (URL giữ nguyên).
 
 ## 4. Kiểm thử
 
@@ -147,7 +162,7 @@ Web chỉ dùng video đã chấm / duyệt: từ chưa có video hiện thông 
 
 ## Giới hạn đã biết
 
-- Chưa kiểm được trên máy thật trong lúc làm: **MediaPipe nhận dạng từ camera thật** và **gọi Gemini thật** (môi trường làm không tải được mô hình của Google). Hãy mở `/kiem-tra/` trên máy bạn: bước 2 (camera + MediaPipe) và bước 3 (Mèo AI).
+- Chưa kiểm được trên máy thật trong lúc làm: **MediaPipe nhận dạng từ camera thật** và **gọi Gemini thật** (môi trường làm không tải được mô hình của Google). Hãy chạy `npm run dev` rồi mở `/kiem-tra/` trên máy bạn: bước 2 (camera + MediaPipe) và bước 3 (Mèo AI).
 - Chỉ 400 từ đơn, ký từng từ một. *Ghép câu* là thử nghiệm: vẫn phải hạ tay giữa các từ, và câu ghép được còn đơn giản vì bộ từ thiếu đại từ, từ hỏi.
 - MediaPipe Holistic tính cả lưới khuôn mặt nên máy yếu có thể dưới 6 hình/giây — web sẽ cảnh báo; khi đó dùng *Tải video lên* (đọc từng hình, không phụ thuộc tốc độ máy).
 - Video HEVC của một số điện thoại có thể không mở được trên Chrome/Edge — quay lại ở định dạng H.264 hoặc WebM.
@@ -164,7 +179,7 @@ src/lib/kho/        tiến độ + hộp Leitner (localStorage)
 src/lib/hoc/        thư viện từ, trang tập ký
 src/lib/thanh-phan/ khung camera, video mẫu, top 5, bảng bộ phận, logo
 src/lib/cong-cu/    công cụ chọn video mẫu: khớp tên QIPEDC, cầu nối tab, chấm, xuất
-src/routes/         trang chủ, dich, hoc, do-vui, tien-do, kiem-tra, cong-cu/video-mau
+src/routes/         trang chủ, dich, hoc, do-vui, tien-do, gioi-thieu, gop-y; kiem-tra và cong-cu/video-mau (chỉ cho nhóm)
 src/lib/du-lieu/    nhan.json (400 nhãn đúng thứ tự mô hình), tu-vung.json (chủ đề + link video cũ)
 static/du-lieu/     video-mau.json (video mẫu đã chấm / duyệt — tạo bằng công cụ ở mục 5)
 static/cong-cu/     lenh-qipedc.js (đoạn lệnh dán vào Console của QIPEDC)

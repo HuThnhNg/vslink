@@ -54,7 +54,7 @@ export function videoCua(tep: TepVideoMau, tu: Tu): VideoCuaTu {
 		if (muc.trang_thai === 'khong' || !muc.chinh) return { ds: [], daDuyet: false, canhBao: null };
 		const ds = [muc.chinh, ...(muc.khac ?? [])];
 		if (muc.trang_thai === 'nghi')
-			return { ds, daDuyet: false, canhBao: 'Cách ký trong video có thể khác cách Mèo chấm — nhóm chưa duyệt từ này.' };
+			return { ds, daDuyet: false, canhBao: 'Cách ký trong video có thể khác cách Mèo chấm, vì nhóm chưa duyệt từ này.' };
 		return { ds, daDuyet: true, canhBao: null };
 	}
 	if (/workers\.dev\//.test(tu.video))

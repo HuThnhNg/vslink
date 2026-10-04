@@ -31,6 +31,8 @@ export default defineConfig({
 	webServer: {
 		command: `npm run build && npx vite preview --port ${cong} --strictPort`,
 		port: cong,
+		// cong cu cua nhom (/kiem-tra/, /cong-cu/) chi co khi bat co nay
+		env: { VITE_CONG_CU_NHOM: '1' },
 		reuseExistingServer: true,
 		timeout: 240_000
 	}
