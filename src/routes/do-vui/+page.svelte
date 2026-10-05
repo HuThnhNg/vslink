@@ -385,7 +385,7 @@
 					{#if cau.xemGoiY}
 						<p class="nho">Đã xem gợi ý: câu này không tính vào lịch ôn tập.</p>
 						{@const v = videoCua(tepVideo, cau.tu)}
-						<VideoMau ds={v.ds} tu={cau.tu.tu} canhBao={v.canhBao} guongMacDinh />
+						<VideoMau ds={v.ds} tu={cau.tu.tu} i={cau.tu.i} canhBao={v.canhBao} guongMacDinh />
 					{/if}
 				</section>
 			</div>

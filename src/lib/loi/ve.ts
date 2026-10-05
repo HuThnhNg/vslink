@@ -67,14 +67,15 @@ export class ButVe {
 		return moi;
 	}
 
-	ve(ctx: CanvasRenderingContext2D, kq: KetQuaHolistic | null, kieu: KieuVe, { dauTron = false } = {}) {
+	/** dayNet: nhan do day net (khung xuong mau ve to hon cho de nhin). */
+	ve(ctx: CanvasRenderingContext2D, kq: KetQuaHolistic | null, kieu: KieuVe, { dauTron = false, dayNet = 1 } = {}) {
 		const { width: w, height: h } = ctx.canvas;
 		ctx.clearRect(0, 0, w, h);
 		if (!kq || kieu === 'an') {
 			this.datLai();
 			return;
 		}
-		const s = Math.max(1.5, w / 480); // do day chuan theo kich thuoc hinh
+		const s = Math.max(1.5, w / 480) * dayNet; // do day chuan theo kich thuoc hinh
 		ctx.lineCap = 'round';
 		ctx.lineJoin = 'round';
 
@@ -147,9 +148,9 @@ function veBanTay(ctx: CanvasRenderingContext2D, d: Diem[], mau: string, w: numb
 	}
 }
 
-/** Chi cho "nguoi que" gia lap: cai dau tron. Camera that khong bao gio ve len mat. */
+/** Chi cho "nguoi que" gia lap va khung xuong mau: cai dau tron. Camera that khong bao gio ve len mat. */
 function veDau(ctx: CanvasRenderingContext2D, d: Diem[], w: number, h: number, s: number) {
-	if (!d[0] || !d[7] || !d[8]) return;
+	if (!tinDuoc(d[0]) || !tinDuoc(d[7]) || !tinDuoc(d[8])) return;
 	const r = Math.max(Math.hypot((d[7].x - d[8].x) * w, (d[7].y - d[8].y) * h) * 0.75, 8);
 	ctx.beginPath();
 	ctx.arc(d[0].x * w, d[0].y * h - r * 0.15, r, 0, Math.PI * 2);

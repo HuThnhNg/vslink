@@ -80,10 +80,11 @@ describe('xuat video-mau.json va doc lai tren web', () => {
 		expect(trangThaiTu(2, uv[2], diem, chon)).toBe('chua-co');
 		expect(trangThaiTu(3, uv[3], diem, chon)).toBe('tay');
 	});
-	it('video chinh = bien the diem cao nhat (hoac chon tay); cac mien con lai la cach khac', () => {
+	it('video chinh = bien the diem cao nhat (hoac chon tay); mien khac chi khi cung dat chuan', () => {
 		const tep = taoTepVideoMau(uv, diem, chon, new Date('2026-09-29'));
 		expect(tep.tu['0'].chinh).toMatchObject({ ma: 'D0001N', mien: 'nam', p: 0.82, hang: 1 });
-		expect(tep.tu['0'].khac!.map((v) => v.ma)).toEqual(['D0001B', 'D0001T']);
+		// D0001B hang 4, D0001T loi -> chua kiem chung -> KHONG dua len lam cach khac
+		expect(tep.tu['0'].khac).toEqual([]);
 		expect(tep.tu['2']).toBeUndefined();
 		expect(tep.tu['3'].chinh!.ma).toBe('D0200N');
 		const tuWeb = { i: 0, tu: 'Địa chỉ', chu_de: 'x', video: '' };
@@ -130,5 +131,20 @@ describe('tra tay trong QIPEDC khi ten khac', () => {
 		]);
 		expect(uv[2]).toMatchObject({ tuQ: 'Tuy Hoà', url: 'https://qipedc.moet.gov.vn/videos/D0015.mp4', mien: null });
 		expect(ghepThem(goc, undefined, theoMa, MAU)).toBe(goc);
+	});
+});
+
+describe('mien khac phai dat chuan moi duoc dua len', () => {
+	it('chi giu mien khac hang 1 va >= 50 %', async () => {
+		const { taoTepVideoMau, khoaDiem } = await import('../../src/lib/cong-cu/xuat');
+		const uv = [khopTu(tu(0, 'Địa chỉ'), cm, MAU)];
+		const diem = {
+			[khoaDiem(0, 'D0001B')]: { p: 0.9, hang: 1, doan: 'Địa chỉ' },
+			[khoaDiem(0, 'D0001N')]: { p: 0.7, hang: 1, doan: 'Địa chỉ' },
+			[khoaDiem(0, 'D0001T')]: { p: 0.3, hang: 1, doan: 'Địa chỉ' }
+		};
+		const tep = taoTepVideoMau(uv, diem, {}, new Date('2026-10-05'));
+		expect(tep.tu['0'].chinh!.ma).toBe('D0001B');
+		expect(tep.tu['0'].khac!.map((v) => v.ma)).toEqual(['D0001N']);
 	});
 });

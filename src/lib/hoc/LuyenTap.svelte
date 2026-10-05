@@ -166,7 +166,7 @@
 	<div class="luoi">
 		<section class="the o-mau" aria-label="Video mẫu">
 			<h2 class="tieu-de-nho">1 · Xem mẫu</h2>
-			<VideoMau ds={video.ds} tu={tu.tu} canhBao={video.canhBao} />
+			<VideoMau ds={video.ds} tu={tu.tu} i={tu.i} canhBao={video.canhBao} />
 		</section>
 
 		<section class="the o-cam" aria-label="Camera của bạn">

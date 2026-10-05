@@ -1,7 +1,7 @@
 // Video mau: web chi dung video da duyet; cong cu nhom noi QIPEDC -> khop -> cham -> xuat.
 import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
-import { anh, chuanBi, coVideoMau, VIDEO_GIA } from './chung';
+import { anh, chuanBi, coKhungMau, coVideoMau, VIDEO_GIA } from './chung';
 
 test('chua co video da duyet: Hoc bao dang duyet, Do vui "xem" tam khoa', async ({ page }) => {
 	const loi = await chuanBi(page);
@@ -99,9 +99,9 @@ test('cong cu: noi QIPEDC -> khop ten -> cham -> chon tay -> xuat video-mau.json
 	const tep = JSON.parse(await readFile((await dl.path())!, 'utf8'));
 	expect(tep.phien_ban).toBe(1);
 	expect(tep.tu['0']).toMatchObject({ trang_thai: 'tay', chinh: { ma: 'D0001T', mien: 'trung', nguon: 'qipedc' } });
-	expect(tep.tu['0'].khac.map((v: { ma: string }) => v.ma).sort()).toEqual(['D0001B', 'D0001N']);
+	expect(tep.tu['0'].khac).toEqual([]); // mien khac chua dat chuan -> khong dua len
 	expect(tep.tu['1'].chinh.ma).toBe('D0002');
-	expect(tep.tu['3'].khac).toHaveLength(1);
+	expect(tep.tu['3'].khac).toEqual([]);
 	expect(tep.tu['12']).toMatchObject({ chinh: { ma: 'D0004', nguon: 'qipedc' } });
 
 	// bo video tu them -> tu lai "khong tim thay"; tai lai trang van nho
@@ -109,5 +109,44 @@ test('cong cu: noi QIPEDC -> khop ten -> cham -> chon tay -> xuat video-mau.json
 	await expect(bb.locator('.nhan-tt')).toHaveText('Không tìm thấy');
 	await page.reload();
 	await expect(page.getByTestId('tien-trinh')).toContainText('Đã chấm 21/21');
+	expect(loi).toEqual([]);
+});
+
+test('chua co video nhung co khung xuong VSL400 da kiem chung: hien mo phong, tam dung duoc', async ({ page }, info) => {
+	const loi = await chuanBi(page);
+	await coVideoMau(page, {}); // chua tu nao co video
+	await coKhungMau(page, {
+		'40': { kiem_chung: true, giay: 1.8, so_mau: 62, p: 0.97, hang: 1 },
+		'41': { kiem_chung: false, giay: 2 }
+	});
+	await page.goto('hoc/?tu=40');
+	await expect(page.getByTestId('tu-dang-tap')).toHaveText('Cháu');
+	const canvas = page.getByTestId('khung-xuong');
+	await expect(canvas).toBeVisible();
+	await expect(page.getByRole('img', { name: 'Mô phỏng khung xương ký hiệu “Cháu”' })).toBeVisible();
+	await expect(page.getByText('Mô phỏng · VSL400')).toBeVisible();
+	await expect(page.getByTestId('nguon-khung-xuong')).toContainText('trong 62 lần ký');
+	await expect(page.getByText('đang được nhóm duyệt lại')).toHaveCount(0);
+	// canvas co net ve (khong chi nen)
+	await expect
+		.poll(() =>
+			canvas.evaluate((c: HTMLCanvasElement) => {
+				const d = c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data;
+				let n = 0;
+				for (let k = 3; k < d.length; k += 4) if (d[k] > 0) n++;
+				return n;
+			})
+		)
+		.toBeGreaterThan(200);
+	await page.getByRole('button', { name: 'Tạm dừng' }).click();
+	await expect(page.getByRole('button', { name: 'Phát tiếp' })).toBeVisible();
+	await page.getByRole('button', { name: 'Soi gương' }).click();
+	await expect(canvas).toHaveClass(/guong/);
+	await anh(page, info, 'hoc-khung-xuong', { cuonToi: page.locator('.o-mau'), toanTrang: false });
+
+	// tu chua kiem chung -> van bao dang duyet, khong ve
+	await page.goto('hoc/?tu=41');
+	await expect(page.getByText('đang được nhóm duyệt lại')).toBeVisible();
+	await expect(page.getByTestId('khung-xuong')).toHaveCount(0);
 	expect(loi).toEqual([]);
 });

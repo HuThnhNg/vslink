@@ -138,10 +138,10 @@ Chưa làm các bước trên thì trang góp ý báo nhẹ nhàng *"Kênh góp 
 ## 4. Kiểm thử
 
 ```bash
-npm test            # 51 kiểm thử đơn vị
+npm test            # 79 kiểm thử đơn vị
 npm run check       # kiểm tra kiểu TypeScript / Svelte
 npx playwright install chromium   # lần đầu
-npm run test:e2e    # 20 kịch bản × (máy tính + điện thoại) trên bản build thật
+npm run test:e2e    # 27 kịch bản × (máy tính + điện thoại) trên bản build thật
 ```
 
 - **Đơn vị** (`tests/unit/`): lấy 60 khung khớp `np.linspace(...).astype(int)` của notebook, đổi toạ độ sang khung vuông, gán tay trái/phải, máy cắt đoạn (máy nhanh/chậm, rung tay, mất người, ký quá ngắn, giơ tay đứng yên), chấm + che bớt, lời Mèo soạn sẵn, hộp Leitner, Worker (giả lập Gemini: model ngừng → thử model sau, key sai, từ lạ, sai nguồn, hết lượt), nội suy theo thời gian cho ký trực tiếp, khớp tên với QIPEDC và xuất `video-mau.json`.
@@ -158,7 +158,16 @@ Một nghĩa có thể có nhiều cách ký (miền Bắc / Trung / Nam…), n�
 4. **Duyệt** nhóm "Cần xem": xem thử, *Chọn* cách đúng, *Tìm thêm* khi tên trên QIPEDC khác tên VSL400, hoặc *Không dùng*.
 5. **Xuất** `video-mau.json` (mặc định chỉ đưa lên các từ "Khớp tốt", từ khác tạm để trống) → chép đè vào `static/du-lieu/` → commit, push.
 
-Web chỉ dùng video đã chấm / duyệt: từ chưa có video hiện thông báo "đang duyệt lại"; Đố vui kiểu "xem video" chỉ hỏi những từ đã duyệt (chưa đủ 4 từ thì tạm khoá).
+Web chỉ dùng video đã chấm / duyệt: từ chưa có video hiện thông báo "đang duyệt lại"; Đố vui kiểu "xem video" chỉ hỏi những từ đã duyệt (chưa đủ 4 từ thì tạm khoá). Cách ký miền khác chỉ hiện khi chính video đó cũng đạt chuẩn "Khớp tốt".
+
+### 5b. Khung xương mẫu cho từ chưa có video
+
+Từ chưa có video thật thì trang Học (và gợi ý trong Đố vui) phát **khung xương của một lần ký thật trong VSL400** — chính dữ liệu mô hình học, nên đúng cách Mèo chấm. Mỗi từ lấy **lần ký tiêu biểu nhất** (gần với mọi lần ký khác của từ đó nhất — *medoid*) trong số các lần mà `vsl400.onnx` nhận đúng hạng 1 và chắc ≥ 50 %, rồi kiểm lại bản sẽ hiện trên web vẫn đạt chuẩn đó. Không lấy trung bình nhiều người: trung bình làm mờ dáng bàn tay, thu nhỏ động tác, và người thuận tay trái / phải triệt tiêu nhau.
+
+1. Kaggle → notebook mới → *Add Input* dataset keypoint VSL400 (như notebook cuối) → bật *Internet* → dán `nghien-cuu/khung-mau/xuat_khung_mau_kaggle.py` vào một ô → Run (CPU, vài phút).
+2. Tải `khung-mau.zip` ở tab Output, giải nén vào `static/du-lieu/` (thành `static/du-lieu/khung-mau/`) → commit, push.
+
+Web chỉ dùng từ có `"kiem_chung": true`; từ đã có video thì vẫn hiện video. Kiểm thử phần xuất: `cd nghien-cuu/khung-mau && python -m pytest -q`.
 
 ## Giới hạn đã biết
 
@@ -168,6 +177,7 @@ Web chỉ dùng video đã chấm / duyệt: từ chưa có video hiện thông 
 - Video HEVC của một số điện thoại có thể không mở được trên Chrome/Edge — quay lại ở định dạng H.264 hoặc WebM.
 - Video mẫu phát trực tiếp từ QIPEDC; nếu trang đó chặn, web hiện nút mở video ở tab mới. Độ giống giữa video QIPEDC và cách ký VSL400 là do mô hình chấm — từ bị gắn cờ vẫn cần người xem lại.
 - Tiến độ lưu theo trình duyệt: đổi máy / xoá dữ liệu trình duyệt là mất.
+- Khung xương mẫu không có nét mặt và chỉ có 21 điểm mỗi bàn tay; tốc độ phát giả định dữ liệu gốc 30 hình/giây.
 
 ## Cấu trúc thư mục
 
@@ -181,11 +191,13 @@ src/lib/thanh-phan/ khung camera, video mẫu, top 5, bảng bộ phận, logo
 src/lib/cong-cu/    công cụ chọn video mẫu: khớp tên QIPEDC, cầu nối tab, chấm, xuất
 src/routes/         trang chủ, dich, hoc, do-vui, tien-do, gioi-thieu, gop-y; kiem-tra và cong-cu/video-mau (chỉ cho nhóm)
 src/lib/du-lieu/    nhan.json (400 nhãn đúng thứ tự mô hình), tu-vung.json (chủ đề + link video cũ)
-static/du-lieu/     video-mau.json (video mẫu đã chấm / duyệt — tạo bằng công cụ ở mục 5)
+static/du-lieu/     video-mau.json (video mẫu đã chấm / duyệt — tạo bằng công cụ ở mục 5),
+                    khung-mau/ (khung xương mẫu VSL400 cho từ chưa có video — mục 5b)
 static/cong-cu/     lenh-qipedc.js (đoạn lệnh dán vào Console của QIPEDC)
 static/models/      vsl400.onnx (đầu vào [B, 60, 75, 2] toạ độ thô → xác suất [B, 400])
 src/lib/cau/        ghép câu: gom dãy top-3, gọi Worker, dự phòng nối từ
 nghien-cuu/ghep-cau/ nghiên cứu gloss → câu: quy tắc NNKH, sinh dữ liệu, đánh giá, notebook Kaggle
+nghien-cuu/khung-mau/ ô Kaggle xuất khung xương mẫu (medoid đã kiểm chung bằng mô hình) + kiểm thử
 worker/             Cloudflare Worker của Mèo (nhận xét + ghép câu)
 scripts/            chép wasm, tải mô hình MediaPipe, tạo dữ liệu từ vựng / vector kiểm tra
 ```

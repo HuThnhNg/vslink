@@ -18,6 +18,9 @@ export function xepUngVien(i: number, uv: UngVien[], diem: BangDiem): UngVien[] 
 	return [...uv].sort((a, b) => (diemCua(diem, i, b.ma)?.p ?? -1) - (diemCua(diem, i, a.ma)?.p ?? -1));
 }
 
+/** Chuan "Khop tot": mo hinh xep dung tu hang 1 va chac >= 50 %. */
+export const datChuan = (d: { p: number; hang: number } | null) => !!d && d.hang === 1 && d.p >= 0.5;
+
 export function trangThaiTu(i: number, uv: UngVien[], diem: BangDiem, chon: LuaChon): TrangThaiVideo | 'chua-co' | 'chua-cham' {
 	if (chon[i] === 'khong') return 'khong';
 	if (chon[i]) return 'tay';
@@ -25,7 +28,7 @@ export function trangThaiTu(i: number, uv: UngVien[], diem: BangDiem, chon: LuaC
 	const tot = xepUngVien(i, uv, diem)[0];
 	const d = diemCua(diem, i, tot.ma);
 	if (!d) return 'chua-cham';
-	if (d.hang === 1 && d.p >= 0.5) return 'tot';
+	if (datChuan(d)) return 'tot';
 	if (d.hang <= 5) return 'kha';
 	return 'nghi';
 }
@@ -63,7 +66,9 @@ export function taoTepVideoMau(
 		if (tt === 'chua-co' || tt === 'chua-cham') return;
 		const xep = xepUngVien(i, uv, diem);
 		const chinh = tt === 'tay' ? (uv.find((u) => u.ma === chon[i]) ?? xep[0]) : xep[0];
-		const khac = xep.filter((u) => u.ma !== chinh.ma && u.cach !== 'cu').slice(0, 4);
+		// Cach ky khac (mien khac) chi dua len khi CHINH NO cung dat chuan "Khop tot" — video
+		// chua kiem chung (vd "Anh (nuoc Anh)" khop nham ten) tuyet doi khong hien cho nguoi hoc.
+		const khac = xep.filter((u) => u.ma !== chinh.ma && u.cach !== 'cu' && datChuan(diemCua(diem, i, u.ma))).slice(0, 4);
 		tu[i] = { trang_thai: tt, chinh: sangVideo(i, chinh, diem), khac: khac.map((u) => sangVideo(i, u, diem)) };
 	});
 	return { phien_ban: 1, ngay: ngay.toISOString().slice(0, 10), tu };
