@@ -41,7 +41,7 @@ import pandas as pd
 
 GOC_VAO = Path(os.environ.get("VSL_DAU_VAO", "/kaggle/input"))
 GOC_RA = Path(os.environ.get("VSL_RA", "/kaggle/working"))
-URL_ONNX = "https://huthnhng.github.io/vslink/models/vsl400.onnx"
+URL_ONNX = "https://vslinkproject.github.io/vslink/models/vsl400.onnx"
 FPS_GOC = 30           # tep keypoint khong ghi fps -> gia dinh 30 (chi dung de phat dung nhip)
 T_KHUNG, SO_KP = 60, 75
 TI_LE = 10000          # toa do x 10000 -> int16

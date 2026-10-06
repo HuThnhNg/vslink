@@ -188,7 +188,7 @@
 				2025.
 			</li>
 			<li>
-				Mã nguồn mở tại <a href="https://github.com/HuThnhNg/vslink" target="_blank" rel="noopener">GitHub</a> (giấy phép
+				Mã nguồn mở tại <a href="https://github.com/VSLinkProject/vslink" target="_blank" rel="noopener">GitHub</a> (giấy phép
 				GPL-3.0).
 			</li>
 		</ul>

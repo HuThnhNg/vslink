@@ -12,4 +12,4 @@ region = "gcp:us-central1"
 
 [vars]
 # Web that + web chay tai may (npm run dev). Nhieu dia chi thi cach nhau dau phay.
-ALLOWED_ORIGINS = "https://huthnhng.github.io,http://localhost:5173"
+ALLOWED_ORIGINS = "https://vslinkproject.github.io,https://huthnhng.github.io,http://localhost:5173"
