@@ -251,6 +251,54 @@ function quaNhieuLuot(ip, now = Date.now()) {
   return ds.length > 5;
 }
 
+// =============================================================================
+// Thuc nghiem nguoi dung: web gui {"loai":"thuc-nghiem","dong":[...]} (toi da 40 dong) -> Worker
+// kiem tung truong -> cung Apps Script cua gop y, ghi sang tab "Thực nghiệm". Chi chu va so.
+// Phong offline 4 may dung chung mot IP nen han muc rong hon gop y.
+// =============================================================================
+const BUOC_TN = new Set(['dong-y', 'huong-dan', 'truoc-hoc', 'hoc', 'hoc-1', 'hoc-2', 'cam-nhan-1', 'cam-nhan-2', 'sau-hoc', 'ky-lai', 'xong']);
+const SU_KIEN_TN = new Set(['bat-dau', 'thiet-bi', 'tra-loi', 'ky', 'bo-qua', 'cam-nhan', 'het-buoc', 'rut-lui']);
+const luotThucNghiem = new Map();
+
+function kiemDongThucNghiem(d) {
+  if (!d || typeof d !== 'object') return null;
+  const ma = chuoi(d.ma, 8);
+  if (!/^[OF]\d{2,3}$/.test(ma) || !BUOC_TN.has(d.buoc) || !SU_KIEN_TN.has(d.su_kien)) return null;
+  const so = (x, a, b) => (typeof x === 'number' && Number.isFinite(x) && x >= a && x <= b ? x : null);
+  const tu = (x) => (typeof x === 'string' && NHAN.has(x) ? x : '');
+  return {
+    thoi_diem: chuoi(d.thoi_diem, 40),
+    ma,
+    phan: ma[0] === 'O' ? 'online' : 'offline',
+    nhom: so(d.nhom, 1, 4),
+    buoc: d.buoc,
+    su_kien: d.su_kien,
+    bo: ['A', 'B', 'online'].includes(d.bo) ? d.bo : '',
+    phan_hoi: typeof d.phan_hoi === 'boolean' ? d.phan_hoi : null,
+    tu: tu(d.tu),
+    tra_loi: tu(d.tra_loi),
+    dung: typeof d.dung === 'boolean' ? d.dung : null,
+    hang: so(d.hang, 1, 400),
+    muc_do: MUC_DO.has(d.muc_do) ? d.muc_do : '',
+    top5: typeof d.top5 === 'string' ? d.top5.split(', ').filter((x) => NHAN.has(x)).slice(0, 5).join(', ') : '',
+    cau_hoi: so(d.cau_hoi, 1, 20),
+    diem: so(d.diem, 1, 7),
+    lan: so(d.lan, 0, 1000),
+    ms: so(d.ms, 0, 3600000),
+    thiet_bi: chuoi(d.thiet_bi, 200),
+    fps: so(d.fps, 0, 240),
+    phien_ban: chuoi(d.phien_ban, 40)
+  };
+}
+
+function quaNhieuThucNghiem(ip, now = Date.now()) {
+  const ds = (luotThucNghiem.get(ip) || []).filter((t) => now - t < 10 * 60 * 1000);
+  ds.push(now);
+  luotThucNghiem.set(ip, ds);
+  if (luotThucNghiem.size > 5000) luotThucNghiem.clear();
+  return ds.length > 300;
+}
+
 export default {
   async fetch(req, env) {
     const nguon = req.headers.get('Origin') || '';
@@ -271,12 +319,35 @@ export default {
     if (req.method !== 'POST') return tra({ loi: 'chi nhan POST' }, 405);
     if (!hopLe) return tra({ loi: 'nguon khong duoc phep' }, 403);
     const than = await req.text();
-    if (than.length > 6000) return tra({ loi: 'du lieu qua lon' }, 413);
+    if (than.length > 60000) return tra({ loi: 'du lieu qua lon' }, 413);
     let yeuCau;
     try {
       yeuCau = JSON.parse(than);
     } catch {
       yeuCau = null;
+    }
+    // chi goi thuc nghiem (nhieu dong) duoc dai hon 6000 ky tu
+    if (than.length > 6000 && yeuCau?.loai !== 'thuc-nghiem') return tra({ loi: 'du lieu qua lon' }, 413);
+
+    // ---- Ket qua thuc nghiem -> tab "Thực nghiệm" cua Google Sheet ----
+    if (yeuCau?.loai === 'thuc-nghiem') {
+      if (!env.GOP_Y_URL || !env.GOP_Y_KHOA) return tra({ loi: 'Worker chua cai dat Sheet (GOP_Y_URL, GOP_Y_KHOA)' }, 503);
+      const ds = Array.isArray(yeuCau.dong) ? yeuCau.dong.slice(0, 40).map(kiemDongThucNghiem) : [];
+      if (!ds.length || ds.some((d) => !d)) return tra({ loi: 'dong thuc nghiem khong hop le' }, 400);
+      if (quaNhieuThucNghiem(req.headers.get('CF-Connecting-IP') || 'khong-ro')) return tra({ loi: 'gui qua nhieu, thu lai sau' }, 429);
+      try {
+        const r = await fetch(env.GOP_Y_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ khoa: env.GOP_Y_KHOA, loai: 'thuc-nghiem', dong: ds }),
+          redirect: 'follow'
+        });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || !j.ok) return tra({ loi: `Apps Script tra loi ${r.status}${j.loi ? ': ' + j.loi : ''}` }, 502);
+      } catch {
+        return tra({ loi: 'khong goi duoc Apps Script' }, 502);
+      }
+      return tra({ ok: true, so_dong: ds.length });
     }
 
     // ---- Ghep cau: day top-3 cua tung tu -> mot cau tieng Viet ----

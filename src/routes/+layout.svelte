@@ -27,6 +27,9 @@
 		return href === '/' ? p === '/' : p.startsWith(href);
 	};
 
+	// Trang thuc nghiem: an thanh dieu huong de nguoi tham gia di dung mot luong
+	const trangThucNghiem = $derived(page.url.pathname.slice(base.length).startsWith('/thuc-nghiem'));
+
 	let toi = $state(false);
 	$effect(() => {
 		const dat = document.documentElement.dataset.giaoDien;
@@ -54,14 +57,16 @@
 		<a href="{base}/" class="thuong-hieu" aria-label="VSLink — trang chủ">
 			<Logo cao={26} />
 		</a>
-		<nav class="dieu-huong" aria-label="Chính">
-			{#each MUC as m (m.href)}
-				<a href="{base}{m.href}" aria-current={dangO(m.href) ? 'page' : undefined}>
-					<m.icon size={18} strokeWidth={2.4} />
-					{m.ten}
-				</a>
-			{/each}
-		</nav>
+		{#if !trangThucNghiem}
+			<nav class="dieu-huong" aria-label="Chính">
+				{#each MUC as m (m.href)}
+					<a href="{base}{m.href}" aria-current={dangO(m.href) ? 'page' : undefined}>
+						<m.icon size={18} strokeWidth={2.4} />
+						{m.ten}
+					</a>
+				{/each}
+			</nav>
+		{/if}
 		<button class="doi-mau" onclick={doiGiaoDien} aria-label={toi ? 'Chuyển sang nền sáng' : 'Chuyển sang nền tối'}>
 			{#if toi}<Sun size={20} />{:else}<Moon size={20} />{/if}
 		</button>

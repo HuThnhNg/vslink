@@ -135,6 +135,17 @@ Góp ý đi: web → Worker (`{"loai":"gop-y"}`) → Google Apps Script → mộ
 
 Chưa làm các bước trên thì trang góp ý báo nhẹ nhàng *"Kênh góp ý đang được nhóm cài đặt"*. Worker chặn spam bằng ô bẫy ẩn và giới hạn 5 góp ý / 10 phút cho mỗi máy. Sửa `KHOA` hay sửa code Apps Script thì phải *Triển khai → Quản lý triển khai → Chỉnh sửa → Phiên bản mới* (URL giữ nguyên).
 
+## 3c. Trang thực nghiệm người dùng (PIISE 2026)
+
+`/thuc-nghiem/` dẫn người tham gia qua đúng một luồng, không hiện thanh điều hướng:
+
+- **Offline (mã F01, F02…)**: đồng ý → bài nhận diện 8 ký hiệu → học bộ 1 (5 phút) → 3 câu cảm nhận → học bộ 2 (5 phút) → 3 câu → bài nhận diện 8 ký hiệu (đảo thứ tự) → ký lại 8 từ không xem mẫu. Nhóm G1–G4 gán theo số mã (F01→G1, F02→G2…), quyết định bộ nào học trước và bộ nào có phản hồi.
+- **Online (mã O01…)**: link từ Google Form `…/thuc-nghiem/?ma=O07` → bài nhận diện 6 ký hiệu → học 3 từ có phản hồi → ký lại 3 từ → bài nhận diện 6 ký hiệu → quay lại Form.
+
+Bộ không phản hồi chỉ có video mẫu và camera soi gương; mô hình vẫn chấm ngầm để ghi số lần tập và hạng. Bộ có phản hồi dùng lời Mèo soạn sẵn (không gọi Gemini) để mọi người nhận cùng một kiểu nhận xét. Bài nhận diện không báo đúng sai.
+
+Từ, thời gian, câu cảm nhận nằm ở [`src/lib/thuc-nghiem/kich-ban.ts`](src/lib/thuc-nghiem/kich-ban.ts) (`CAU_HINH`); chỉ dùng từ đã có video mẫu duyệt, kiểm thử đơn vị sẽ báo nếu chọn sai. Mỗi sự kiện (trả lời, lần ký, câu cảm nhận, đầu/cuối mỗi bước, thiết bị, tốc độ khung hình) là một dòng: lưu vào máy trước, rồi gửi qua Worker (`{"loai":"thuc-nghiem"}`) tới cùng Apps Script của góp ý, ghi vào tab **Thực nghiệm**. Cài như mục 3b, sau đó dán lại cả `meo-worker.js` và `gop-y-apps-script.gs` (Apps Script: *Quản lý triển khai → Phiên bản mới*). Chưa cài thì web chỉ lưu trên máy; mục *Dành cho người hướng dẫn* ở cuối trang có nút tải toàn bộ kết quả trên máy (CSV). Tải lại trang giữa chừng thì bấm *Làm tiếp* để vào lại đúng bước (bước dở được làm lại từ đầu, nên khi phân tích lấy lần trả lời cuối của mỗi câu). Thử nhanh không cần camera: `/thuc-nghiem/?gia-lap=1&giay=15`.
+
 ## 4. Kiểm thử
 
 ```bash

@@ -21,6 +21,7 @@ function doPost(e) {
   try {
     const d = JSON.parse(e.postData.contents);
     if (d.khoa !== KHOA) return traVe({ ok: false, loi: 'sai khoa' });
+    if (d.loai === 'thuc-nghiem') return ghiThucNghiem(d.dong || []);
     const sh = layTrang();
     // Ghi dạng văn bản thuần để Sheet không hiểu nhầm ô bắt đầu bằng = + - @ là công thức
     const vb = (x) => (typeof x === 'string' && /^[=+\-@]/.test(x) ? "'" + x : x);
@@ -33,6 +34,34 @@ function doPost(e) {
   } catch (err) {
     return traVe({ ok: false, loi: String(err) });
   }
+}
+
+// Thực nghiệm người dùng: mỗi lần nhận tối đa 40 dòng, ghi vào tab riêng "Thực nghiệm".
+const TRANG_TN = 'Thực nghiệm';
+const COT_TN = ['thoi_diem', 'ma', 'phan', 'nhom', 'buoc', 'su_kien', 'bo', 'phan_hoi', 'tu', 'tra_loi', 'dung', 'hang',
+  'muc_do', 'top5', 'cau_hoi', 'diem', 'lan', 'ms', 'thiet_bi', 'fps', 'phien_ban'];
+
+function ghiThucNghiem(ds) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName(TRANG_TN);
+  if (!sh) {
+    sh = ss.insertSheet(TRANG_TN);
+    sh.appendRow(['nhan_luc'].concat(COT_TN));
+    sh.setFrozenRows(1);
+  }
+  if (!ds.length) return traVe({ ok: true });
+  const vb = (x) => (typeof x === 'string' && /^[=+\-@]/.test(x) ? "'" + x : x);
+  const bayGio = new Date();
+  const hang = ds.map((d) => [bayGio].concat(COT_TN.map((c) => (d[c] === null || d[c] === undefined ? '' : vb(d[c])))));
+  // 4 máy gửi cùng lúc: khoá để hai lần ghi không đè lên cùng một hàng
+  const khoa = LockService.getScriptLock();
+  khoa.waitLock(20000);
+  try {
+    sh.getRange(sh.getLastRow() + 1, 1, hang.length, hang[0].length).setValues(hang);
+  } finally {
+    khoa.releaseLock();
+  }
+  return traVe({ ok: true });
 }
 
 function layTrang() {
