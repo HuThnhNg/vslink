@@ -1,22 +1,44 @@
-<!-- Cam nhan sau mot bo tu: moi cau thang 1–7, tra loi du moi gui duoc. -->
+<!--
+	Cau hoi thang 1–7 (cam nhan sau moi bo, do tu tin tiep can cong dong Diec), tra loi du moi gui duoc.
+	luaChon: mot cau chon mot dap an dat truoc thang (vd. da tung gap nguoi Diec chua).
+-->
 <script lang="ts">
 	import { untrack } from 'svelte';
 
 	let {
 		cauHoi,
+		tieuDe = 'Cảm nhận về bộ từ vừa học',
+		luaChon = null,
 		onGui
 	}: {
 		cauHoi: readonly string[];
-		onGui: (diem: number[]) => void;
+		tieuDe?: string;
+		luaChon?: { cau: string; dapAn: readonly string[] } | null;
+		/** diem: 1..7 moi cau; chon: so thu tu dap an luaChon (1..), null neu khong co */
+		onGui: (diem: number[], chon: number | null) => void;
 	} = $props();
 
 	// trang duoc dung lai theo {#key} moi buoc, nen chi can gia tri ban dau
 	let diem = $state<(number | null)[]>(untrack(() => cauHoi.map(() => null)));
-	const du = $derived(diem.every((d) => d !== null));
+	let chon = $state<number | null>(null);
+	const du = $derived(diem.every((d) => d !== null) && (!luaChon || chon !== null));
 </script>
 
 <section class="the" data-testid="cam-nhan">
-	<p class="nhan-nho">Cảm nhận về bộ từ vừa học</p>
+	<p class="nhan-nho">{tieuDe}</p>
+	{#if luaChon}
+		<fieldset>
+			<legend>{luaChon.cau}</legend>
+			<div class="lua-chon">
+				{#each luaChon.dapAn as d, j (j)}
+					<label class:chon={chon === j + 1}>
+						<input type="radio" name="lua-chon" value={j + 1} bind:group={chon} />
+						{d}
+					</label>
+				{/each}
+			</div>
+		</fieldset>
+	{/if}
 	<p class="phu">1 = Hoàn toàn không đồng ý · 4 = Phân vân · 7 = Hoàn toàn đồng ý</p>
 	{#each cauHoi as c, j (j)}
 		<fieldset>
@@ -31,7 +53,7 @@
 			</div>
 		</fieldset>
 	{/each}
-	<button class="nut" disabled={!du} onclick={() => onGui(diem as number[])} data-testid="gui-cam-nhan">Gửi và tiếp tục</button>
+	<button class="nut" disabled={!du} onclick={() => onGui(diem as number[], chon)} data-testid="gui-cam-nhan">Gửi và tiếp tục</button>
 </section>
 
 <style>
@@ -52,6 +74,14 @@
 		display: grid;
 		grid-template-columns: repeat(7, minmax(36px, 56px));
 		gap: 6px;
+	}
+	.lua-chon {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+	.lua-chon label {
+		padding: 10px 16px;
 	}
 	label {
 		display: grid;

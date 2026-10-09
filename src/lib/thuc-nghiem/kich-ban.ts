@@ -27,6 +27,16 @@ export const CAU_HINH = {
 	soDapAn: 4,
 	/** link Google Form online (co ?entry... de dien san ma): de trong thi chi bao "quay lai tab Form" */
 	linkFormOnline: '',
+	/** Do tu tin tiep can cong dong Diec: hoi truoc bai nhan dien dau va sau bai cuoi (offline tren web,
+	 *  online trong Google Form). Cau tu soan, chua phai thang chuan. */
+	thaiDo: [
+		'Mình tự tin có thể chào hỏi một người Điếc bằng vài ký hiệu đơn giản.',
+		'Mình biết mình có thể làm gì để bắt chuyện với một người Điếc (ký hiệu, cử chỉ, viết).',
+		'Nếu gặp một người Điếc, mình sẽ chủ động tiếp cận thay vì ngại né.',
+		'Mình tự tin có thể tự học thêm ký hiệu để gần hơn với cộng đồng Điếc.'
+	],
+	/** chi hoi o lan truoc; ghi vao cot cau_hoi = so cau thaiDo + 1 */
+	cauNen: { cau: 'Bạn đã từng gặp hoặc trò chuyện với người Điếc chưa?', dapAn: ['Chưa', 'Vài lần', 'Thường xuyên'] },
 	camNhan: [
 		'Mình thấy thích khi học bộ từ này.',
 		'Cách học vừa rồi giúp mình biết cần sửa chỗ nào.',
@@ -111,6 +121,7 @@ export type Buoc =
 	| { loai: 'hoc'; ten: 'hoc' | 'hoc-1' | 'hoc-2'; bo: Bo; tu: Tu[]; phanHoi: boolean; giay: number }
 	| { loai: 'cam-nhan'; ten: 'cam-nhan-1' | 'cam-nhan-2'; bo: Bo; phanHoi: boolean }
 	| { loai: 'ky-lai'; ten: 'ky-lai'; tu: Tu[] }
+	| { loai: 'thai-do'; ten: 'thai-do-truoc' | 'thai-do-sau' }
 	| { loai: 'xong'; ten: 'xong' };
 
 const HAT = { truoc: 101, sau: 202, kyLai: 303 };
@@ -137,6 +148,7 @@ export function taoKichBan(n: NguoiThamGia, tuVung: Tu[] = TU_VUNG.tu): Buoc[] {
 	return [
 		{ loai: 'dong-y', ten: 'dong-y' },
 		{ loai: 'huong-dan', ten: 'huong-dan' },
+		{ loai: 'thai-do', ten: 'thai-do-truoc' },
 		{ loai: 'nhan-dien', ten: 'truoc-hoc', cau: taoBaiNhanDien(tatCa, HAT.truoc) },
 		{ loai: 'hoc', ten: 'hoc-1', bo: mot.bo, tu: bo[mot.bo], phanHoi: mot.phanHoi, giay },
 		{ loai: 'cam-nhan', ten: 'cam-nhan-1', bo: mot.bo, phanHoi: mot.phanHoi },
@@ -144,6 +156,7 @@ export function taoKichBan(n: NguoiThamGia, tuVung: Tu[] = TU_VUNG.tu): Buoc[] {
 		{ loai: 'cam-nhan', ten: 'cam-nhan-2', bo: hai.bo, phanHoi: hai.phanHoi },
 		{ loai: 'nhan-dien', ten: 'sau-hoc', cau: taoBaiNhanDien(tatCa, HAT.sau) },
 		{ loai: 'ky-lai', ten: 'ky-lai', tu: xao(tatCa, hatGiong(HAT.kyLai)) },
+		{ loai: 'thai-do', ten: 'thai-do-sau' },
 		{ loai: 'xong', ten: 'xong' }
 	];
 }

@@ -14,7 +14,7 @@ async function lamBaiNhanDien(page: Page, soCau: number, tong = soCau) {
 async function lamCamNhan(page: Page) {
 	const the = page.getByTestId('cam-nhan');
 	await expect(the.getByTestId('gui-cam-nhan')).toBeDisabled();
-	for (const fs of await the.locator('fieldset').all()) await fs.locator('label').nth(5).click();
+	for (const fs of await the.locator('fieldset').all()) await fs.locator('label').last().click();
 	await the.getByTestId('gui-cam-nhan').click();
 }
 
@@ -32,6 +32,7 @@ test('thuc nghiem offline: du cac buoc, dung dieu kien theo nhom, ghi ket qua th
 	await page.getByTestId('o-dong-y').check();
 	await page.getByTestId('tiep').click();
 	await page.getByTestId('tiep').click(); // huong dan
+	await lamCamNhan(page); // do tu tin tiep can cong dong Diec, lan truoc (kem cau nen)
 
 	await lamBaiNhanDien(page, 8);
 
@@ -62,6 +63,7 @@ test('thuc nghiem offline: du cac buoc, dung dieu kien theo nhom, ghi ket qua th
 		await expect(page.getByTestId('ky-lai')).toContainText(`Từ ${k}/8`);
 		await page.getByTestId('khong-nho').click();
 	}
+	await lamCamNhan(page); // do tu tin tiep can, lan sau
 	await expect(page.getByTestId('xong')).toBeVisible();
 
 	const dong = await page.evaluate(() => JSON.parse(localStorage.getItem('vslink-tn-tat-ca') ?? '[]'));
@@ -70,7 +72,10 @@ test('thuc nghiem offline: du cac buoc, dung dieu kien theo nhom, ghi ket qua th
 	expect(loai('truoc-hoc', 'tra-loi')).toHaveLength(8);
 	expect(loai('sau-hoc', 'tra-loi')).toHaveLength(8);
 	expect(loai('cam-nhan-1', 'cam-nhan')).toHaveLength(3);
-	expect(loai('cam-nhan-1', 'cam-nhan')[0]).toMatchObject({ bo: 'A', phan_hoi: false, diem: 6 });
+	expect(loai('cam-nhan-1', 'cam-nhan')[0]).toMatchObject({ bo: 'A', phan_hoi: false, diem: 7 });
+	expect(loai('thai-do-truoc', 'thai-do')).toHaveLength(5); // 4 cau + cau nen
+	expect(loai('thai-do-truoc', 'thai-do')[4]).toMatchObject({ cau_hoi: 5, diem: 3 });
+	expect(loai('thai-do-sau', 'thai-do')).toHaveLength(4);
 	expect(loai('hoc-1', 'ky')[0]).toMatchObject({ bo: 'A', phan_hoi: false });
 	expect(loai('hoc-2', 'ky')[0]).toMatchObject({ bo: 'B', phan_hoi: true });
 	expect(loai('ky-lai', 'ky')).toHaveLength(1);

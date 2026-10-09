@@ -33,7 +33,8 @@ describe('kich ban offline', () => {
 	it('thu tu buoc dung phieu thiet ke', () => {
 		const kb = taoKichBan(docMa('F02')!);
 		expect(kb.map((b) => b.ten)).toEqual([
-			'dong-y', 'huong-dan', 'truoc-hoc', 'hoc-1', 'cam-nhan-1', 'hoc-2', 'cam-nhan-2', 'sau-hoc', 'ky-lai', 'xong'
+			'dong-y', 'huong-dan', 'thai-do-truoc', 'truoc-hoc', 'hoc-1', 'cam-nhan-1', 'hoc-2', 'cam-nhan-2', 'sau-hoc',
+			'ky-lai', 'thai-do-sau', 'xong'
 		]);
 		const hoc = kb.filter((b) => b.loai === 'hoc');
 		expect(hoc.map((b) => [b.bo, b.phanHoi])).toEqual([['A', false], ['B', true]]);

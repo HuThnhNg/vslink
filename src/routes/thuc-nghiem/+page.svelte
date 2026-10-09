@@ -249,6 +249,20 @@
 					}}
 				/>
 			{/key}
+		{:else if buoc.loai === 'thai-do'}
+			{@const b = buoc}
+			{#key b.ten}
+				<CamNhan
+					cauHoi={CAU_HINH.thaiDo}
+					tieuDe={b.ten === 'thai-do-truoc' ? 'Trước khi bắt đầu' : 'Câu hỏi cuối'}
+					luaChon={b.ten === 'thai-do-truoc' ? CAU_HINH.cauNen : null}
+					onGui={(diem, chon) => {
+						diem.forEach((d, j) => ghi('thai-do', { cau_hoi: j + 1, diem: d }));
+						if (chon !== null) ghi('thai-do', { cau_hoi: CAU_HINH.thaiDo.length + 1, diem: chon });
+						hetBuoc();
+					}}
+				/>
+			{/key}
 		{:else if buoc.loai === 'ky-lai'}
 			{@const b = buoc}
 			<KyLai

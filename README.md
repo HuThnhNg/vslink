@@ -139,7 +139,7 @@ Chưa làm các bước trên thì trang góp ý báo nhẹ nhàng *"Kênh góp 
 
 `/thuc-nghiem/` dẫn người tham gia qua đúng một luồng, không hiện thanh điều hướng:
 
-- **Offline (mã F01, F02…)**: đồng ý → bài nhận diện 8 ký hiệu → học bộ 1 (5 phút) → 3 câu cảm nhận → học bộ 2 (5 phút) → 3 câu → bài nhận diện 8 ký hiệu (đảo thứ tự) → ký lại 8 từ không xem mẫu. Nhóm G1–G4 gán theo số mã (F01→G1, F02→G2…), quyết định bộ nào học trước và bộ nào có phản hồi.
+- **Offline (mã F01, F02…)**: đồng ý → 4 câu độ tự tin tiếp cận cộng đồng Điếc → bài nhận diện 8 ký hiệu → học bộ 1 (5 phút) → 3 câu cảm nhận → học bộ 2 (5 phút) → 3 câu → bài nhận diện 8 ký hiệu (đảo thứ tự) → ký lại 8 từ không xem mẫu → hỏi lại 4 câu độ tự tin. Nhóm G1–G4 gán theo số mã (F01→G1, F02→G2…), quyết định bộ nào học trước và bộ nào có phản hồi.
 - **Online (mã O01…)**: link từ Google Form `…/thuc-nghiem/?ma=O07` → bài nhận diện 6 ký hiệu → học 3 từ có phản hồi → ký lại 3 từ → bài nhận diện 6 ký hiệu → quay lại Form.
 
 Bộ không phản hồi chỉ có video mẫu và camera soi gương; mô hình vẫn chấm ngầm để ghi số lần tập và hạng. Bộ có phản hồi dùng lời Mèo soạn sẵn (không gọi Gemini) để mọi người nhận cùng một kiểu nhận xét. Bài nhận diện không báo đúng sai.

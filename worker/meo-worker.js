@@ -256,8 +256,8 @@ function quaNhieuLuot(ip, now = Date.now()) {
 // kiem tung truong -> cung Apps Script cua gop y, ghi sang tab "Thực nghiệm". Chi chu va so.
 // Phong offline 4 may dung chung mot IP nen han muc rong hon gop y.
 // =============================================================================
-const BUOC_TN = new Set(['dong-y', 'huong-dan', 'truoc-hoc', 'hoc', 'hoc-1', 'hoc-2', 'cam-nhan-1', 'cam-nhan-2', 'sau-hoc', 'ky-lai', 'xong']);
-const SU_KIEN_TN = new Set(['bat-dau', 'thiet-bi', 'tra-loi', 'ky', 'bo-qua', 'cam-nhan', 'het-buoc', 'rut-lui']);
+const BUOC_TN = new Set(['dong-y', 'huong-dan', 'truoc-hoc', 'hoc', 'hoc-1', 'hoc-2', 'cam-nhan-1', 'cam-nhan-2', 'sau-hoc', 'ky-lai', 'thai-do-truoc', 'thai-do-sau', 'xong']);
+const SU_KIEN_TN = new Set(['bat-dau', 'thiet-bi', 'tra-loi', 'ky', 'bo-qua', 'cam-nhan', 'thai-do', 'het-buoc', 'rut-lui']);
 const luotThucNghiem = new Map();
 
 function kiemDongThucNghiem(d) {

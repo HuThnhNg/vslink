@@ -4,7 +4,7 @@
 // buoi tai ve duoc toan bo du lieu tren may lam ban du phong.
 import { PHIEN_BAN_THUC_NGHIEM, type Bo, type NguoiThamGia } from './kich-ban';
 
-export type SuKien = 'bat-dau' | 'thiet-bi' | 'tra-loi' | 'ky' | 'bo-qua' | 'cam-nhan' | 'het-buoc' | 'rut-lui';
+export type SuKien = 'bat-dau' | 'thiet-bi' | 'tra-loi' | 'ky' | 'bo-qua' | 'cam-nhan' | 'thai-do' | 'het-buoc' | 'rut-lui';
 
 export type DongGhi = {
 	ma: string;
